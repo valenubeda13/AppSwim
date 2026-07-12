@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "SwimApp",
+    "slug": "swim-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0B2545"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.swimapp.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B2545"
+      },
+      "package": "com.swimapp.mobile"
+    },
+    "plugins": []
+  }
+}
