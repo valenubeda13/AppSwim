@@ -1,1 +1,22 @@
-node_modules
+node_modules/
+.expo/
+dist/
+web-build/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# macOS
+.DS_Store
+
+# Variables de entorno
+.env
+.env.local
+
+# Logs
+*.log
