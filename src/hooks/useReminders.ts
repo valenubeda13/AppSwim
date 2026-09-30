@@ -23,8 +23,12 @@ export function useReminders() {
     }
   }, []);
 
+  // IIFE: evita el falso positivo de react-hooks/set-state-in-effect
+  // (facebook/react#34743) al llamar a `load` desde el efecto.
   useEffect(() => {
-    load();
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   const createReminder = useCallback(

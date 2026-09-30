@@ -21,7 +21,6 @@ export function HomeHeader({ userName, greeting, streakDays }: HomeHeaderProps) 
   return (
     <View style={styles.container}>
       <ImageBackground
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         source={require('@/assets/images/fondoSwimora.jpg')}
         style={styles.image}
         imageStyle={styles.imageRadius}
