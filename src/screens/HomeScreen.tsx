@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing } from '@/theme';
 import { getGreeting } from '@/utils/formatters';
 import { useHomeStats } from '@/hooks/useHomeStats';
+import { useProfile } from '@/hooks/useProfile';
 import {
   HomeHeader,
   QuickAccessCard,
@@ -13,9 +14,6 @@ import {
   TipCard,
   SectionTitle,
 } from '@/components';
-
-// TODO: reemplazar por el nombre real del perfil (pantalla Perfil / AsyncStorage)
-const MOCK_USER_NAME = 'Valen';
 
 const DAILY_TIP = {
   quote: 'La disciplina de hoy es el éxito de mañana.',
@@ -29,6 +27,7 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onNavigateToWorkouts, onNavigateToRecords }: HomeScreenProps) {
   const { stats, isLoading } = useHomeStats();
+  const { profile } = useProfile();
 
   return (
     <View style={styles.root}>
@@ -37,10 +36,9 @@ export function HomeScreen({ onNavigateToWorkouts, onNavigateToRecords }: HomeSc
         contentContainerStyle={styles.scrollContent}
       >
         <HomeHeader
-          userName={MOCK_USER_NAME}
+          userName={profile?.name ?? 'Nadador/a'}
           greeting={getGreeting()}
           streakDays={stats?.currentStreakDays ?? 0}
-       
         />
 
         <View style={styles.content}>

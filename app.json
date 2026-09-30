@@ -18,6 +18,13 @@
       },
       "package": "com.swimapp.mobile"
     },
-    "plugins": []
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "SwimApp necesita acceso a tus fotos para que puedas elegir una foto de perfil."
+        }
+      ]
+    ]
   }
 }

@@ -1,10 +1,13 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Calendar, Trophy, User } from 'lucide-react-native';
 
 import { colors } from '@/theme';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
+import { WorkoutsNavigator } from './WorkoutsNavigator';
+import { ProfileNavigator } from './ProfileNavigator';
 import { RootTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -20,7 +23,7 @@ export function BottomTabNavigator() {
           height: 84,
           paddingTop: 8,
           paddingBottom: 22,
-          borderTopWidth: StyleSheetHairline,
+          borderTopWidth: StyleSheet.hairlineWidth,
           borderTopColor: colors.border,
           backgroundColor: colors.surface,
         },
@@ -32,19 +35,21 @@ export function BottomTabNavigator() {
     >
       <Tab.Screen
         name="Inicio"
-        component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
-      />
+      >
+        {({ navigation }) => (
+          <HomeScreen onNavigateToWorkouts={() => navigation.navigate('Entrenamientos')} />
+        )}
+      </Tab.Screen>
       <Tab.Screen
         name="Entrenamientos"
+        component={WorkoutsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
         }}
-      >
-        {() => <PlaceholderScreen title="Entrenamientos" />}
-      </Tab.Screen>
+      />
       <Tab.Screen
         name="MisMarcas"
         options={{
@@ -56,15 +61,11 @@ export function BottomTabNavigator() {
       </Tab.Screen>
       <Tab.Screen
         name="Perfil"
+        component={ProfileNavigator}
         options={{
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
-      >
-        {() => <PlaceholderScreen title="Perfil" />}
-      </Tab.Screen>
+      />
     </Tab.Navigator>
   );
 }
-
-// Valor simple para el borde superior del tab bar (0.5 en iOS, 1 en Android)
-const StyleSheetHairline = 0.5;

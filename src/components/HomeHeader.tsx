@@ -80,10 +80,6 @@ const styles = StyleSheet.create({
   },
   imageRadius: {
     resizeMode: 'cover',
-    transform: [
-    { scale: 1 },
-  ],
-    
   },
   topRow: {
     flexDirection: 'row',
