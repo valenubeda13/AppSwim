@@ -89,8 +89,11 @@ export function EditProfileScreen({ navigation }: Props) {
       username: profile.username ?? '',
       bio: profile.bio ?? '',
       gender: profile.gender ?? 'nadador',
-      swimmingSinceYear: profile.swimmingSince ? String(new Date(profile.swimmingSince).getFullYear()) : '',
-      goalMetersPerWeek: profile.goalMetersPerWeek !== undefined ? String(profile.goalMetersPerWeek) : '',
+      swimmingSinceYear: profile.swimmingSince
+        ? String(new Date(profile.swimmingSince).getFullYear())
+        : '',
+      goalMetersPerWeek:
+        profile.goalMetersPerWeek !== undefined ? String(profile.goalMetersPerWeek) : '',
       preferredPoolLength: profile.preferredPoolLength ?? 25,
     });
   }, [profile, reset]);
@@ -140,12 +143,16 @@ export function EditProfileScreen({ navigation }: Props) {
 
     const input: ProfileInput = {
       name: values.name.trim(),
-      goalMetersPerWeek: values.goalMetersPerWeek.trim() ? Number(values.goalMetersPerWeek) : undefined,
+      goalMetersPerWeek: values.goalMetersPerWeek.trim()
+        ? Number(values.goalMetersPerWeek)
+        : undefined,
       preferredPoolLength: values.preferredPoolLength,
       username: values.username.trim(),
       bio: values.bio.trim(),
       gender: values.gender,
-      swimmingSince: values.swimmingSinceYear.trim() ? `${values.swimmingSinceYear.trim()}-01-01` : undefined,
+      swimmingSince: values.swimmingSinceYear.trim()
+        ? `${values.swimmingSinceYear.trim()}-01-01`
+        : undefined,
     };
 
     try {
@@ -165,7 +172,10 @@ export function EditProfileScreen({ navigation }: Props) {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView style={styles.root} contentContainerStyle={styles.content}>
         <View style={styles.avatarSection}>
           <AvatarPicker
@@ -212,7 +222,9 @@ export function EditProfileScreen({ navigation }: Props) {
         <View style={styles.field}>
           <View style={styles.labelRow}>
             <Text style={styles.label}>Descripción</Text>
-            <Text style={[styles.wordCount, bioWordCount > BIO_WORD_LIMIT && styles.wordCountError]}>
+            <Text
+              style={[styles.wordCount, bioWordCount > BIO_WORD_LIMIT && styles.wordCountError]}
+            >
               {bioWordCount}/{BIO_WORD_LIMIT} palabras
             </Text>
           </View>
@@ -220,7 +232,8 @@ export function EditProfileScreen({ navigation }: Props) {
             control={control}
             name="bio"
             rules={{
-              validate: (value) => countWords(value) <= BIO_WORD_LIMIT || `Máximo ${BIO_WORD_LIMIT} palabras`,
+              validate: (value) =>
+                countWords(value) <= BIO_WORD_LIMIT || `Máximo ${BIO_WORD_LIMIT} palabras`,
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
@@ -265,7 +278,9 @@ export function EditProfileScreen({ navigation }: Props) {
               />
             )}
           />
-          {errors.swimmingSinceYear && <Text style={styles.fieldError}>{errors.swimmingSinceYear.message}</Text>}
+          {errors.swimmingSinceYear && (
+            <Text style={styles.fieldError}>{errors.swimmingSinceYear.message}</Text>
+          )}
         </View>
 
         <View style={styles.field}>
@@ -288,7 +303,9 @@ export function EditProfileScreen({ navigation }: Props) {
               />
             )}
           />
-          {errors.goalMetersPerWeek && <Text style={styles.fieldError}>{errors.goalMetersPerWeek.message}</Text>}
+          {errors.goalMetersPerWeek && (
+            <Text style={styles.fieldError}>{errors.goalMetersPerWeek.message}</Text>
+          )}
         </View>
 
         <View style={styles.field}>
@@ -311,7 +328,9 @@ export function EditProfileScreen({ navigation }: Props) {
               name="username"
               rules={{
                 validate: (value) =>
-                  !value.trim() || /^[a-z0-9_.]{3,20}$/i.test(value.trim()) || 'Entre 3 y 20 letras, números, "." o "_"',
+                  !value.trim() ||
+                  /^[a-z0-9_.]{3,20}$/i.test(value.trim()) ||
+                  'Entre 3 y 20 letras, números, "." o "_"',
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput

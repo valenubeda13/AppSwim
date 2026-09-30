@@ -16,7 +16,14 @@ interface StatItemProps {
  * Un valor estadístico individual (ej: "32 Entrenamientos este mes").
  * Se usa 3 veces dentro de <SummaryCard /> separado por divisores.
  */
-export function StatItem({ icon: Icon, iconColor, iconBackground, value, unit, label }: StatItemProps) {
+export function StatItem({
+  icon: Icon,
+  iconColor,
+  iconBackground,
+  value,
+  unit,
+  label,
+}: StatItemProps) {
   return (
     <View style={styles.container}>
       <View style={[styles.iconCircle, { backgroundColor: iconBackground }]}>

@@ -1,5 +1,12 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ChevronRight, Target, Trophy, User as UserIcon } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -45,7 +52,9 @@ export function ProfileScreen({ navigation }: Props) {
     : undefined;
   const weeklyGoal = profile?.goalMetersPerWeek;
   const weeklyProgress = weeklyGoal ? Math.round((stats.currentWeekMeters / weeklyGoal) * 100) : 0;
-  const poolLengthLabel = profile?.preferredPoolLength ? `${profile.preferredPoolLength} m` : 'Sin definir';
+  const poolLengthLabel = profile?.preferredPoolLength
+    ? `${profile.preferredPoolLength} m`
+    : 'Sin definir';
 
   const goToEditProfile = () => navigation.navigate('EditProfile');
 
@@ -80,7 +89,8 @@ export function ProfileScreen({ navigation }: Props) {
               </View>
             ) : (
               <Text style={styles.goalEmpty}>
-                Definí tu meta semanal desde el lápiz de arriba para ver acá tu progreso de la semana.
+                Definí tu meta semanal desde el lápiz de arriba para ver acá tu progreso de la
+                semana.
               </Text>
             )}
           </SectionCard>
@@ -96,7 +106,11 @@ export function ProfileScreen({ navigation }: Props) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.dataRow, styles.dataRowBorder]} activeOpacity={0.7} onPress={goToEditProfile}>
+            <TouchableOpacity
+              style={[styles.dataRow, styles.dataRowBorder]}
+              activeOpacity={0.7}
+              onPress={goToEditProfile}
+            >
               <Text style={styles.dataLabel}>Pileta preferida</Text>
               <View style={styles.dataValueRow}>
                 <Text style={styles.dataValue} numberOfLines={1}>

@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  SectionList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Waves } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -88,7 +95,9 @@ export function WorkoutsListScreen({ navigation }: Props) {
       sections={sections}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
-      renderSectionHeader={({ section }) => <Text style={styles.sectionTitle}>{section.title}</Text>}
+      renderSectionHeader={({ section }) => (
+        <Text style={styles.sectionTitle}>{section.title}</Text>
+      )}
       renderItem={({ item }) => (
         <WorkoutListItem
           workout={item}

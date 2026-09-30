@@ -38,7 +38,9 @@ export function sumWorkouts(workouts: Workout[]): { totalMeters: number; totalMi
 export function computeStreakDays(workouts: Workout[]): number {
   if (workouts.length === 0) return 0;
 
-  const uniqueDaysDesc = Array.from(new Set(workouts.map((w) => w.date))).sort().reverse();
+  const uniqueDaysDesc = Array.from(new Set(workouts.map((w) => w.date)))
+    .sort()
+    .reverse();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

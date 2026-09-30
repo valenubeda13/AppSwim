@@ -8,13 +8,7 @@ import { colors, spacing } from '@/theme';
 import { getGreeting } from '@/utils/formatters';
 import { useHomeStats } from '@/hooks/useHomeStats';
 import { useProfile } from '@/hooks/useProfile';
-import {
-  HomeHeader,
-  QuickAccessCard,
-  SummaryCard,
-  TipCard,
-  SectionTitle,
-} from '@/components';
+import { HomeHeader, QuickAccessCard, SummaryCard, TipCard, SectionTitle } from '@/components';
 import { RootTabParamList } from '@/navigation/types';
 
 const DAILY_TIP = {
@@ -29,10 +23,7 @@ export function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <HomeHeader
           userName={profile?.name ?? 'Nadador/a'}
           greeting={getGreeting()}

@@ -15,7 +15,13 @@ interface SectionCardProps {
  * Card blanca con header (ícono + título + link opcional a la derecha)
  * usada en Perfil para agrupar "Mis objetivos" / "Mis datos" / "Mis logros".
  */
-export function SectionCard({ icon: Icon, title, rightLabel, onPressRight, children }: SectionCardProps) {
+export function SectionCard({
+  icon: Icon,
+  title,
+  rightLabel,
+  onPressRight,
+  children,
+}: SectionCardProps) {
   return (
     <View style={[styles.card, shadow.soft]}>
       <View style={styles.header}>

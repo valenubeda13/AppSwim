@@ -16,7 +16,13 @@ interface EmptyStateProps {
  * Entrenamientos cuando todavía no hay nada cargado, y queda listo
  * para reutilizarse en Mis marcas.
  */
-export function EmptyState({ icon: Icon, title, description, ctaLabel, onPressCta }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  ctaLabel,
+  onPressCta,
+}: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>

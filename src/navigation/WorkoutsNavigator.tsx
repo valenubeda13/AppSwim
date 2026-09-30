@@ -40,7 +40,11 @@ export function WorkoutsNavigator() {
           ),
         })}
       />
-      <Stack.Screen name="WorkoutForm" component={WorkoutFormScreen} options={{ title: 'Entrenamiento' }} />
+      <Stack.Screen
+        name="WorkoutForm"
+        component={WorkoutFormScreen}
+        options={{ title: 'Entrenamiento' }}
+      />
     </Stack.Navigator>
   );
 }

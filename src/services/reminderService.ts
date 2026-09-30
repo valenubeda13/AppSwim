@@ -34,6 +34,9 @@ export const reminderService = {
 
   async remove(id: string): Promise<void> {
     const all = await readAll();
-    await storage.set(STORAGE_KEYS.reminders, all.filter((r) => r.id !== id));
+    await storage.set(
+      STORAGE_KEYS.reminders,
+      all.filter((r) => r.id !== id)
+    );
   },
 };

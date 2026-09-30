@@ -37,6 +37,9 @@ export const workoutService = {
 
   async remove(id: string): Promise<void> {
     const all = await readAll();
-    await storage.set(STORAGE_KEYS.workouts, all.filter((w) => w.id !== id));
+    await storage.set(
+      STORAGE_KEYS.workouts,
+      all.filter((w) => w.id !== id)
+    );
   },
 };

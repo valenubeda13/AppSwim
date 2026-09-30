@@ -90,7 +90,16 @@ export type ProfileInput = Omit<
   | 'favoriteStyle'
 > &
   Partial<
-    Pick<UserProfile, 'username' | 'bio' | 'gender' | 'swimmingSince' | 'distanceUnit' | 'timeFormat' | 'favoriteStyle'>
+    Pick<
+      UserProfile,
+      | 'username'
+      | 'bio'
+      | 'gender'
+      | 'swimmingSince'
+      | 'distanceUnit'
+      | 'timeFormat'
+      | 'favoriteStyle'
+    >
   >;
 
 /** Estadísticas resumidas para la pantalla de Inicio (mes actual) */

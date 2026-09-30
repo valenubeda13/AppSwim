@@ -149,25 +149,23 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
 
   const handleDelete = () => {
     if (!workoutId) return;
-    Alert.alert(
-      'Eliminar entrenamiento',
-      'Esta acción no se puede deshacer. ¿Querés eliminarlo?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteWorkout(workoutId);
-              navigation.goBack();
-            } catch (err) {
-              setServerError(err instanceof Error ? err.message : 'No se pudo eliminar el entrenamiento.');
-            }
-          },
+    Alert.alert('Eliminar entrenamiento', 'Esta acción no se puede deshacer. ¿Querés eliminarlo?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteWorkout(workoutId);
+            navigation.goBack();
+          } catch (err) {
+            setServerError(
+              err instanceof Error ? err.message : 'No se pudo eliminar el entrenamiento.'
+            );
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -247,7 +245,9 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
                 />
               )}
             />
-            {errors.totalMeters && <Text style={styles.fieldError}>{errors.totalMeters.message}</Text>}
+            {errors.totalMeters && (
+              <Text style={styles.fieldError}>{errors.totalMeters.message}</Text>
+            )}
           </View>
 
           <View style={{ width: spacing.md }} />
@@ -343,7 +343,9 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
           {isSubmitting ? (
             <ActivityIndicator color={colors.surface} />
           ) : (
-            <Text style={styles.submitLabel}>{isEditing ? 'Guardar cambios' : 'Agregar entrenamiento'}</Text>
+            <Text style={styles.submitLabel}>
+              {isEditing ? 'Guardar cambios' : 'Agregar entrenamiento'}
+            </Text>
           )}
         </TouchableOpacity>
 
