@@ -17,8 +17,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>;
  * Pantalla Perfil: header (nombre/bio/"nadador desde"), progreso de la
  * meta semanal, y datos/preferencias (nombre, meta, pileta) en filas de
  * solo lectura que abren Editar perfil (lápiz del header) para modificarse.
- * El lápiz también lleva a la bio/username/año, y la rueda a Cuenta y
- * sesión (cerrar sesión/borrar cuenta). "Mis logros" queda en
+ * El lápiz también lleva a la bio/username/año. "Mis logros" queda en
  * "Próximamente" hasta que exista Mis Marcas.
  */
 export function ProfileScreen({ navigation }: Props) {
@@ -61,7 +60,6 @@ export function ProfileScreen({ navigation }: Props) {
           gender={profile?.gender}
           swimmingSinceYear={swimmingSinceYear}
           onPressEdit={goToEditProfile}
-          onPressSettings={() => navigation.navigate('AccountSettings')}
         />
 
         <View style={styles.content}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Pencil, Settings, Waves } from 'lucide-react-native';
+import { Pencil, Waves } from 'lucide-react-native';
 import { colors, radius, spacing, typography } from '@/theme';
 import { AvatarPicker } from './AvatarPicker';
 import { WaveShape } from './WaveShape';
@@ -16,7 +16,6 @@ interface ProfileHeaderProps {
   gender?: Gender;
   swimmingSinceYear?: number;
   onPressEdit: () => void;
-  onPressSettings: () => void;
 }
 
 const SWIMMER_LABEL: Record<Gender | 'default', string> = {
@@ -26,10 +25,10 @@ const SWIMMER_LABEL: Record<Gender | 'default', string> = {
 };
 
 /**
- * Header oscuro de la pantalla Perfil: título + accesos (editar/ajustes)
- * arriba, y debajo avatar + nombre + bio + "Nadador/a desde <año>". La foto
- * es de solo lectura acá (se cambia desde Editar perfil, ícono de lápiz).
- * El resto de Perfil (objetivos, logros, stats de toda la vida) se arma en
+ * Header oscuro de la pantalla Perfil: título + acceso a editar arriba, y
+ * debajo avatar + nombre + bio + "Nadador/a desde <año>". La foto es de
+ * solo lectura acá (se cambia desde Editar perfil, ícono de lápiz). El
+ * resto de Perfil (objetivos, logros, stats de toda la vida) se arma en
  * pasos siguientes.
  */
 export function ProfileHeader({
@@ -40,7 +39,6 @@ export function ProfileHeader({
   gender,
   swimmingSinceYear,
   onPressEdit,
-  onPressSettings,
 }: ProfileHeaderProps) {
   return (
     <View style={styles.container}>
@@ -59,14 +57,6 @@ export function ProfileHeader({
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Pencil size={20} color={colors.textOnDark} strokeWidth={2.2} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              activeOpacity={0.7}
-              onPress={onPressSettings}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Settings size={20} color={colors.textOnDark} strokeWidth={2.2} />
             </TouchableOpacity>
           </View>
         </View>

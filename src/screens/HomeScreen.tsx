@@ -1,7 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Calendar, Trophy } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { colors, spacing } from '@/theme';
 import { getGreeting } from '@/utils/formatters';
@@ -14,18 +15,15 @@ import {
   TipCard,
   SectionTitle,
 } from '@/components';
+import { RootTabParamList } from '@/navigation/types';
 
 const DAILY_TIP = {
   quote: 'La disciplina de hoy es el éxito de mañana.',
   caption: 'Seguí entrenando, cada metro cuenta.',
 };
 
-interface HomeScreenProps {
-  onNavigateToWorkouts?: () => void;
-  onNavigateToRecords?: () => void;
-}
-
-export function HomeScreen({ onNavigateToWorkouts, onNavigateToRecords }: HomeScreenProps) {
+export function HomeScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { stats, isLoading } = useHomeStats();
   const { profile } = useProfile();
 
@@ -48,11 +46,11 @@ export function HomeScreen({ onNavigateToWorkouts, onNavigateToRecords }: HomeSc
             <View style={styles.quickAccessRow}>
               <QuickAccessCard
                 icon={Calendar}
-                title="Entrenamientos"
+                title="Entrenos"
                 subtitle="Ver y registrar"
                 backgroundColor={colors.primaryLight}
                 accentColor={colors.primary}
-                onPress={onNavigateToWorkouts}
+                onPress={() => navigation.navigate('Entrenamientos')}
               />
               <View style={{ width: spacing.md }} />
               <QuickAccessCard
@@ -61,7 +59,7 @@ export function HomeScreen({ onNavigateToWorkouts, onNavigateToRecords }: HomeSc
                 subtitle="Ver y mejorar"
                 backgroundColor={colors.successLight}
                 accentColor={colors.success}
-                onPress={onNavigateToRecords}
+                onPress={() => navigation.navigate('MisMarcas')}
               />
             </View>
           </View>
@@ -84,16 +82,6 @@ export function HomeScreen({ onNavigateToWorkouts, onNavigateToRecords }: HomeSc
         </View>
       </ScrollView>
     </View>
-  );
-}
-
-// Este wrapper con SafeAreaView se usa cuando la pantalla se monta
-// fuera del bottom tab navigator (ej: en pruebas aisladas).
-export function HomeScreenStandalone(props: HomeScreenProps) {
-  return (
-    <SafeAreaView style={styles.root} edges={['left', 'right']}>
-      <HomeScreen {...props} />
-    </SafeAreaView>
   );
 }
 

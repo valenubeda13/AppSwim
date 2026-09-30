@@ -13,5 +13,4 @@ export type WorkoutsStackParamList = {
 export type ProfileStackParamList = {
   ProfileMain: undefined;
   EditProfile: undefined;
-  AccountSettings: undefined;
 };

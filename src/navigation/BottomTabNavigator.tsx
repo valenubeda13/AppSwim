@@ -12,6 +12,12 @@ import { RootTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+// Componente estable (no inline) para que React Navigation no lo
+// desmonte/remonte en cada render del navigator.
+function MisMarcasPlaceholder() {
+  return <PlaceholderScreen title="Mis marcas" />;
+}
+
 export function BottomTabNavigator() {
   return (
     <Tab.Navigator
@@ -35,14 +41,11 @@ export function BottomTabNavigator() {
     >
       <Tab.Screen
         name="Inicio"
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
-      >
-        {({ navigation }) => (
-          <HomeScreen onNavigateToWorkouts={() => navigation.navigate('Entrenamientos')} />
-        )}
-      </Tab.Screen>
+      />
       <Tab.Screen
         name="Entrenamientos"
         component={WorkoutsNavigator}
@@ -52,13 +55,12 @@ export function BottomTabNavigator() {
       />
       <Tab.Screen
         name="MisMarcas"
+        component={MisMarcasPlaceholder}
         options={{
           tabBarLabel: 'Mis marcas',
           tabBarIcon: ({ color, size }) => <Trophy color={color} size={size} />,
         }}
-      >
-        {() => <PlaceholderScreen title="Mis marcas" />}
-      </Tab.Screen>
+      />
       <Tab.Screen
         name="Perfil"
         component={ProfileNavigator}

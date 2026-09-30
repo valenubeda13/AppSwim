@@ -5,9 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#0B2545"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.swimapp.mobile"
@@ -23,6 +20,13 @@
         "expo-image-picker",
         {
           "photosPermission": "SwimApp necesita acceso a tus fotos para que puedas elegir una foto de perfil."
+        }
+      ],
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B2545"
         }
       ]
     ]

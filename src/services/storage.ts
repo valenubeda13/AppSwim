@@ -25,4 +25,10 @@ export const STORAGE_KEYS = {
   workouts: '@swimapp/workouts',
   personalRecords: '@swimapp/personal_records',
   profile: '@swimapp/profile',
+  reminders: '@swimapp/reminders',
 } as const;
+
+/** Genera un id simple para filas nuevas (no hay base de datos que lo asigne). */
+export function generateId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}

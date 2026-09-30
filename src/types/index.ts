@@ -51,7 +51,7 @@ export interface PersonalRecord {
   poolLength: 25 | 50;
 }
 
-/** Perfil del usuario, guardado en Supabase (tabla `profiles`) */
+/** Perfil del usuario, guardado localmente (AsyncStorage) */
 export interface UserProfile {
   id: string;
   name: string;

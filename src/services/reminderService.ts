@@ -1,70 +1,39 @@
 import { Reminder, ReminderInput } from '@/types';
-import { supabase } from './supabaseClient';
+import { generateId, storage, STORAGE_KEYS } from './storage';
 
-/** Fila cruda de la tabla `reminders` (snake_case, como la deja Postgres). */
-interface ReminderRow {
-  id: string;
-  label: string;
-  time_of_day: string;
-  days_of_week: number[];
-  is_active: boolean;
+async function readAll(): Promise<Reminder[]> {
+  return (await storage.get<Reminder[]>(STORAGE_KEYS.reminders)) ?? [];
 }
 
-function fromRow(row: ReminderRow): Reminder {
-  return {
-    id: row.id,
-    label: row.label,
-    timeOfDay: row.time_of_day,
-    daysOfWeek: row.days_of_week,
-    isActive: row.is_active,
-  };
-}
-
-function toRow(input: ReminderInput) {
-  return {
-    label: input.label,
-    time_of_day: input.timeOfDay,
-    days_of_week: input.daysOfWeek,
-    is_active: input.isActive,
-  };
+function sortedByTime(reminders: Reminder[]): Reminder[] {
+  return [...reminders].sort((a, b) => a.timeOfDay.localeCompare(b.timeOfDay));
 }
 
 export const reminderService = {
   async getAll(): Promise<Reminder[]> {
-    const { data, error } = await supabase
-      .from('reminders')
-      .select('*')
-      .order('time_of_day', { ascending: true });
-
-    if (error) throw new Error(error.message);
-    return (data as ReminderRow[]).map(fromRow);
+    return sortedByTime(await readAll());
   },
 
-  async create(input: ReminderInput, userId: string): Promise<Reminder> {
-    const { data, error } = await supabase
-      .from('reminders')
-      .insert({ ...toRow(input), user_id: userId })
-      .select()
-      .single();
-
-    if (error) throw new Error(error.message);
-    return fromRow(data as ReminderRow);
+  async create(input: ReminderInput): Promise<Reminder> {
+    const reminder: Reminder = { ...input, id: generateId() };
+    const all = await readAll();
+    await storage.set(STORAGE_KEYS.reminders, [...all, reminder]);
+    return reminder;
   },
 
   async update(id: string, input: ReminderInput): Promise<Reminder> {
-    const { data, error } = await supabase
-      .from('reminders')
-      .update(toRow(input))
-      .eq('id', id)
-      .select()
-      .single();
+    const all = await readAll();
+    const index = all.findIndex((r) => r.id === id);
+    if (index === -1) throw new Error('No se encontró el recordatorio.');
 
-    if (error) throw new Error(error.message);
-    return fromRow(data as ReminderRow);
+    const updated: Reminder = { ...input, id };
+    all[index] = updated;
+    await storage.set(STORAGE_KEYS.reminders, all);
+    return updated;
   },
 
   async remove(id: string): Promise<void> {
-    const { error } = await supabase.from('reminders').delete().eq('id', id);
-    if (error) throw new Error(error.message);
+    const all = await readAll();
+    await storage.set(STORAGE_KEYS.reminders, all.filter((r) => r.id !== id));
   },
 };

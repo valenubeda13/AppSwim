@@ -1,84 +1,42 @@
 import { Workout, WorkoutInput } from '@/types';
-import { supabase } from './supabaseClient';
+import { generateId, storage, STORAGE_KEYS } from './storage';
 
-/**
- * Fila cruda de la tabla `workouts` (snake_case, como la deja Postgres).
- * `workout_sets` todavía no se consulta acá: v1 no tiene desglose de series.
- */
-interface WorkoutRow {
-  id: string;
-  date: string;
-  pool_length: 25 | 50;
-  total_meters: number;
-  total_time_minutes: number;
-  calories: number | null;
-  intensity: Workout['intensity'];
-  notes: string | null;
+async function readAll(): Promise<Workout[]> {
+  return (await storage.get<Workout[]>(STORAGE_KEYS.workouts)) ?? [];
 }
 
-function fromRow(row: WorkoutRow): Workout {
-  return {
-    id: row.id,
-    date: row.date,
-    poolLength: row.pool_length,
-    totalMeters: row.total_meters,
-    totalTimeMinutes: row.total_time_minutes,
-    calories: row.calories ?? undefined,
-    intensity: row.intensity,
-    notes: row.notes ?? undefined,
-    sets: [],
-  };
-}
-
-function toRow(input: WorkoutInput) {
-  return {
-    date: input.date,
-    pool_length: input.poolLength,
-    total_meters: input.totalMeters,
-    total_time_minutes: input.totalTimeMinutes,
-    calories: input.calories ?? null,
-    intensity: input.intensity,
-    notes: input.notes ?? null,
-  };
+function sortedByDateDesc(workouts: Workout[]): Workout[] {
+  // Orden estable: más reciente primero. Si dos entrenamientos comparten
+  // fecha, gana el que se guardó último (por eso `create` inserta al
+  // principio del array antes de persistir).
+  return [...workouts].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
 export const workoutService = {
   async getAll(): Promise<Workout[]> {
-    const { data, error } = await supabase
-      .from('workouts')
-      .select('*')
-      .order('date', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    if (error) throw new Error(error.message);
-    return (data as WorkoutRow[]).map(fromRow);
+    return sortedByDateDesc(await readAll());
   },
 
-  async create(input: WorkoutInput, userId: string): Promise<Workout> {
-    const { data, error } = await supabase
-      .from('workouts')
-      .insert({ ...toRow(input), user_id: userId })
-      .select()
-      .single();
-
-    if (error) throw new Error(error.message);
-    return fromRow(data as WorkoutRow);
+  async create(input: WorkoutInput): Promise<Workout> {
+    const workout: Workout = { ...input, id: generateId(), sets: [] };
+    const all = await readAll();
+    await storage.set(STORAGE_KEYS.workouts, [workout, ...all]);
+    return workout;
   },
 
   async update(id: string, input: WorkoutInput): Promise<Workout> {
-    const { data, error } = await supabase
-      .from('workouts')
-      .update(toRow(input))
-      .eq('id', id)
-      .select()
-      .single();
+    const all = await readAll();
+    const index = all.findIndex((w) => w.id === id);
+    if (index === -1) throw new Error('No se encontró el entrenamiento.');
 
-    if (error) throw new Error(error.message);
-    return fromRow(data as WorkoutRow);
+    const updated: Workout = { ...all[index], ...input, id };
+    all[index] = updated;
+    await storage.set(STORAGE_KEYS.workouts, all);
+    return updated;
   },
 
   async remove(id: string): Promise<void> {
-    const { error } = await supabase.from('workouts').delete().eq('id', id);
-    if (error) throw new Error(error.message);
+    const all = await readAll();
+    await storage.set(STORAGE_KEYS.workouts, all.filter((w) => w.id !== id));
   },
 };

@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Reminder, ReminderInput } from '@/types';
 import { reminderService } from '@/services/reminderService';
-import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Recordatorios del usuario logueado (Supabase). Expone también
+ * Recordatorios guardados localmente (AsyncStorage). Expone también
  * `activeCount`, el número que se muestra en Perfil ("Recordatorios: N activos").
  */
 export function useReminders() {
-  const { session } = useAuth();
-  const userId = session?.user.id;
-
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +29,10 @@ export function useReminders() {
 
   const createReminder = useCallback(
     async (input: ReminderInput) => {
-      if (!userId) throw new Error('No hay sesión activa.');
-      await reminderService.create(input, userId);
+      await reminderService.create(input);
       await load();
     },
-    [userId, load]
+    [load]
   );
 
   const updateReminder = useCallback(

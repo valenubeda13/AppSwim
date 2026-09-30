@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Workout, WorkoutInput } from '@/types';
 import { workoutService } from '@/services/workoutService';
-import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Entrenamientos del usuario logueado (Supabase). Usado por la pantalla
- * Entrenamientos para listar, crear, editar y borrar.
+ * Entrenamientos guardados localmente (AsyncStorage). Usado por la
+ * pantalla Entrenamientos para listar, crear, editar y borrar.
  */
 export function useWorkouts() {
-  const { session } = useAuth();
-  const userId = session?.user.id;
-
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +29,10 @@ export function useWorkouts() {
 
   const createWorkout = useCallback(
     async (input: WorkoutInput) => {
-      if (!userId) throw new Error('No hay sesión activa.');
-      await workoutService.create(input, userId);
+      await workoutService.create(input);
       await load();
     },
-    [userId, load]
+    [load]
   );
 
   const updateWorkout = useCallback(
