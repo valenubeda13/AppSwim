@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Pencil, Waves } from 'lucide-react-native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { AvatarPicker } from './AvatarPicker';
 import { WaveShape } from './WaveShape';
 import { Gender } from '@/types';
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(61, 214, 208, 0.16)',
+    backgroundColor: colors.accentMuted,
     borderRadius: radius.full,
     paddingVertical: spacing.xs - 1,
     paddingHorizontal: spacing.sm + 2,
@@ -163,6 +163,6 @@ const styles = StyleSheet.create({
   badgeLabel: {
     ...typography.caption,
     color: colors.accent,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
 });

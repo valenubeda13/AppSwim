@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Waves, Timer } from 'lucide-react-native';
-import { colors, radius, shadow, spacing, typography } from '@/theme';
+import { colors, fontFamily, radius, shadow, spacing, typography } from '@/theme';
 import { Workout } from '@/types';
 import { formatDateLabel, formatMeters } from '@/utils/formatters';
 
@@ -19,7 +19,7 @@ const INTENSITY_LABEL: Record<Workout['intensity'], string> = {
 const INTENSITY_COLOR: Record<Workout['intensity'], { text: string; background: string }> = {
   suave: { text: colors.success, background: colors.successLight },
   moderada: { text: colors.primary, background: colors.primaryLight },
-  alta: { text: '#D14343', background: '#FBEAEA' },
+  alta: { text: colors.error, background: colors.errorLight },
 };
 
 /**
@@ -46,7 +46,7 @@ export function WorkoutListItem({ workout, onPress }: WorkoutListItemProps) {
           <Text style={styles.metricValue}>{formatMeters(workout.totalMeters)} m</Text>
         </View>
         <View style={styles.metric}>
-          <Timer size={16} color="#8B5CF6" strokeWidth={2.2} />
+          <Timer size={16} color={colors.tertiary} strokeWidth={2.2} />
           <Text style={styles.metricValue}>{workout.totalTimeMinutes} min</Text>
         </View>
         <Text style={styles.poolLength}>Pileta {workout.poolLength} m</Text>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   badgeLabel: {
     ...typography.caption,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
   metricsRow: {
     flexDirection: 'row',

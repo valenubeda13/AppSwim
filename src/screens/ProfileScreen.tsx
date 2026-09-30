@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   serverError: {
     ...typography.caption,
-    color: '#D14343',
+    color: colors.error,
     marginBottom: spacing.md,
     textAlign: 'center',
   },

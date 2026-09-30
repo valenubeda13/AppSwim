@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LucideIcon } from 'lucide-react-native';
-import { colors, radius, shadow, spacing, typography } from '@/theme';
+import { colors, fontFamily, radius, shadow, spacing, typography } from '@/theme';
 
 interface SectionCardProps {
   icon: LucideIcon;
@@ -77,6 +77,6 @@ const styles = StyleSheet.create({
   rightLabel: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
 });

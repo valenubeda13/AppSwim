@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
   },
   wordCountError: {
-    color: '#D14343',
+    color: colors.error,
   },
   input: {
     backgroundColor: colors.surface,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   },
   fieldError: {
     ...typography.caption,
-    color: '#D14343',
+    color: colors.error,
     marginTop: spacing.xs,
   },
   helperText: {
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   serverError: {
     ...typography.caption,
-    color: '#D14343',
+    color: colors.error,
     marginBottom: spacing.md,
     textAlign: 'center',
   },

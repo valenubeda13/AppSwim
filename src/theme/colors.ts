@@ -17,6 +17,14 @@ export const colors = {
   success: '#1FAE7E',
   successLight: '#E4F8F0',
 
+  // Violeta (usado puntualmente, ej: métrica de tiempo en el resumen)
+  tertiary: '#8B5CF6',
+  tertiaryLight: '#F1EBFE',
+
+  // Rojo (errores, intensidad "alta", acciones destructivas)
+  error: '#D14343',
+  errorLight: '#FBEAEA',
+
   // Neutros
   background: '#F5F8FC', // fondo general de la app
   surface: '#FFFFFF', // cards, tab bar
@@ -31,6 +39,14 @@ export const colors = {
   // Gradiente del header (oscuro -> transparente sobre la foto)
   headerGradientStart: 'rgba(6, 20, 40, 0.85)',
   headerGradientEnd: 'rgba(6, 20, 40, 0.25)',
+
+  // Overlays "glass" sobre fondos oscuros/fotos (ej: StreakBadge)
+  overlayDark: 'rgba(8, 24, 46, 0.55)',
+  glassOverlay: 'rgba(255, 255, 255, 0.12)',
+  // primaryDark semitransparente (ej: overlay de "subiendo foto" en AvatarPicker)
+  overlayPrimary: 'rgba(11, 37, 69, 0.45)',
+  // accent semitransparente (ej: fondo del badge "Nadador/a desde")
+  accentMuted: 'rgba(61, 214, 208, 0.16)',
 
   shadow: '#0B2545',
 } as const;

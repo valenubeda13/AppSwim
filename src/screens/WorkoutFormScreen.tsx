@@ -14,7 +14,7 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { SegmentedControl } from '@/components';
 import { Intensity, WorkoutInput } from '@/types';
@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
   },
   fieldError: {
     ...typography.caption,
-    color: '#D14343',
+    color: colors.error,
     marginTop: spacing.xs,
   },
   serverError: {
     ...typography.caption,
-    color: '#D14343',
+    color: colors.error,
     marginBottom: spacing.md,
     textAlign: 'center',
   },
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   quickDateLabel: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
   submitButton: {
     backgroundColor: colors.primary,
@@ -459,6 +459,6 @@ const styles = StyleSheet.create({
   },
   deleteLabel: {
     ...typography.bodyStrong,
-    color: '#D14343',
+    color: colors.error,
   },
 });

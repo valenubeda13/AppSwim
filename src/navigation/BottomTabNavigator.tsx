@@ -1,11 +1,12 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, Trophy, User } from 'lucide-react-native';
+import { Home, Calendar, Trophy, User, FlaskConical } from 'lucide-react-native';
 
-import { colors } from '@/theme';
+import { colors, fontFamily } from '@/theme';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
+import { DevPlaygroundScreen } from '@/screens/DevPlaygroundScreen';
 import { WorkoutsNavigator } from './WorkoutsNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { RootTabParamList } from './types';
@@ -34,8 +35,8 @@ export function BottomTabNavigator() {
           backgroundColor: colors.surface,
         },
         tabBarLabelStyle: {
+          fontFamily: fontFamily.semiBold,
           fontSize: 12,
-          fontWeight: '600',
         },
       }}
     >
@@ -68,6 +69,15 @@ export function BottomTabNavigator() {
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
+      {__DEV__ && (
+        <Tab.Screen
+          name="Dev"
+          component={DevPlaygroundScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => <FlaskConical color={color} size={size} />,
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 }

@@ -42,8 +42,8 @@ export function SummaryCard({ stats }: SummaryCardProps) {
 
       <StatItem
         icon={Timer}
-        iconColor="#8B5CF6"
-        iconBackground="#F1EBFE"
+        iconColor={colors.tertiary}
+        iconBackground={colors.tertiaryLight}
         value={`${hours} h ${minutes}`}
         unit="min"
         label={'Tiempo total\neste mes'}
