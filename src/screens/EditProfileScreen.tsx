@@ -117,7 +117,7 @@ export function EditProfileScreen({ navigation }: Props) {
     setServerError(null);
     setIsUploadingAvatar(true);
     try {
-      await updateAvatar(asset.uri, asset.mimeType ?? 'image/jpeg');
+      await updateAvatar(asset.uri);
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'No se pudo subir la foto.');
     } finally {

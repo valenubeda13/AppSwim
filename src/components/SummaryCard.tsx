@@ -3,19 +3,20 @@ import { StyleSheet, View } from 'react-native';
 import { Waves, Activity, Timer } from 'lucide-react-native';
 import { colors, radius, shadow, spacing } from '@/theme';
 import { StatItem } from './StatItem';
-import type { HomeStats } from '@/hooks/useHomeStats';
+import type { WorkoutTotals } from '@/hooks/useWorkoutStats';
 import { formatDuration, formatMeters } from '@/utils/formatters';
 
 interface SummaryCardProps {
-  stats: HomeStats;
+  /** Totales del mes actual. */
+  totals: WorkoutTotals;
 }
 
 /**
  * Card blanca con las 3 estadísticas principales del mes,
  * separadas por líneas divisorias verticales (estilo Strava).
  */
-export function SummaryCard({ stats }: SummaryCardProps) {
-  const { hours, minutes } = formatDuration(stats.totalSecondsThisMonth);
+export function SummaryCard({ totals }: SummaryCardProps) {
+  const { hours, minutes } = formatDuration(totals.seconds);
 
   return (
     <View style={[styles.card, shadow.card]}>
@@ -23,7 +24,7 @@ export function SummaryCard({ stats }: SummaryCardProps) {
         icon={Activity}
         iconColor={colors.primary}
         iconBackground={colors.primaryLight}
-        value={String(stats.workoutsThisMonth)}
+        value={String(totals.workouts)}
         label={'Entrenamientos\neste mes'}
       />
 
@@ -33,7 +34,7 @@ export function SummaryCard({ stats }: SummaryCardProps) {
         icon={Waves}
         iconColor={colors.accent}
         iconBackground={colors.accentLight}
-        value={formatMeters(stats.totalMetersThisMonth)}
+        value={formatMeters(totals.meters)}
         unit="m"
         label={'Metros totales\neste mes'}
       />

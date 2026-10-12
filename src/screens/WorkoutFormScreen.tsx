@@ -67,7 +67,7 @@ function quickDateIso(offsetDays: number): string {
 export function WorkoutFormScreen({ navigation, route }: Props) {
   const { workoutId } = route.params;
   const isEditing = Boolean(workoutId);
-  const { workouts, isLoading, createWorkout, updateWorkout, deleteWorkout } = useWorkouts();
+  const { workouts, isLoading, addWorkout, updateWorkout, deleteWorkout } = useWorkouts();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const existing = workoutId ? workouts.find((w) => w.id === workoutId) : undefined;
@@ -142,7 +142,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       if (isEditing && workoutId) {
         await updateWorkout(workoutId, input);
       } else {
-        await createWorkout(input);
+        await addWorkout(input);
       }
       navigation.goBack();
     } catch (err) {

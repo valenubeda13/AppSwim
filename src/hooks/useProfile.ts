@@ -1,43 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ProfileInput, UserProfile } from '@/types';
-import { profileRepository } from '@/services/repositories';
+import { useContext } from 'react';
+import { ProfileContext, ProfileContextValue } from '@/context/ProfileProvider';
 
-/**
- * Perfil guardado localmente (AsyncStorage). Se reutiliza en la Home
- * (saludo) y en la pantalla Perfil.
- */
-export function useProfile() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      setProfile(await profileRepository.get());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo cargar el perfil.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // IIFE: evita el falso positivo de react-hooks/set-state-in-effect
-  // (facebook/react#34743) al llamar a `load` desde el efecto.
-  useEffect(() => {
-    void (async () => {
-      await load();
-    })();
-  }, [load]);
-
-  const updateProfile = useCallback(async (input: ProfileInput) => {
-    setProfile(await profileRepository.update(input));
-  }, []);
-
-  const updateAvatar = useCallback(async (localUri: string, _mimeType: string) => {
-    setProfile(await profileRepository.setAvatar(localUri));
-  }, []);
-
-  return { profile, isLoading, error, reload: load, updateProfile, updateAvatar };
+/** Perfil compartido por toda la app (ver ProfileProvider). */
+export function useProfile(): ProfileContextValue {
+  const context = useContext(ProfileContext);
+  if (!context) throw new Error('useProfile tiene que usarse dentro de <ProfileProvider>.');
+  return context;
 }

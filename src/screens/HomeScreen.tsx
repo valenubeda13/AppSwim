@@ -6,7 +6,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { colors, spacing } from '@/theme';
 import { getGreeting } from '@/utils/formatters';
-import { useHomeStats } from '@/hooks/useHomeStats';
+import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useProfile } from '@/hooks/useProfile';
 import { HomeHeader, QuickAccessCard, SummaryCard, TipCard, SectionTitle } from '@/components';
 import { RootTabParamList } from '@/navigation/types';
@@ -18,7 +18,7 @@ const DAILY_TIP = {
 
 export function HomeScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
-  const { stats, isLoading } = useHomeStats();
+  const { stats, isLoading } = useWorkoutStats();
   const { profile } = useProfile();
 
   return (
@@ -27,7 +27,7 @@ export function HomeScreen() {
         <HomeHeader
           userName={profile?.name ?? 'Nadador/a'}
           greeting={getGreeting()}
-          streakDays={stats?.currentStreakDays ?? 0}
+          streakDays={stats.streakDays}
         />
 
         <View style={styles.content}>
@@ -58,10 +58,10 @@ export function HomeScreen() {
           {/* Resumen */}
           <View style={styles.section}>
             <SectionTitle>Resumen</SectionTitle>
-            {isLoading || !stats ? (
+            {isLoading ? (
               <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.lg }} />
             ) : (
-              <SummaryCard stats={stats} />
+              <SummaryCard totals={stats.thisMonth} />
             )}
           </View>
 

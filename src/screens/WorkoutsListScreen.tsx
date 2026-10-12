@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   SectionList,
@@ -8,7 +8,6 @@ import {
   View,
 } from 'react-native';
 import { Waves } from 'lucide-react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography } from '@/theme';
@@ -47,14 +46,6 @@ function groupByMonth(workouts: Workout[]): WorkoutSection[] {
 export function WorkoutsListScreen({ navigation }: Props) {
   const { workouts, isLoading, error, reload } = useWorkouts();
   const sections = useMemo(() => groupByMonth(workouts), [workouts]);
-
-  // El formulario (alta/edición/borrado) vive en otra instancia de
-  // useWorkouts; se refresca acá al volver para reflejar los cambios.
-  useFocusEffect(
-    useCallback(() => {
-      reload();
-    }, [reload])
-  );
 
   if (isLoading) {
     return (

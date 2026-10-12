@@ -1,11 +1,6 @@
 import { Workout } from '@/types';
 import { parseLocalDate, toIsoDate } from './formatters';
 
-export function isSameMonth(dateIso: string, reference: Date): boolean {
-  const date = parseLocalDate(dateIso);
-  return date.getMonth() === reference.getMonth() && date.getFullYear() === reference.getFullYear();
-}
-
 /**
  * Lunes de la semana que contiene `reference`, en "yyyy-MM-dd". Comparable
  * como string contra `workout.date` porque el formato ISO ordena igual

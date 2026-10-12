@@ -14,6 +14,8 @@ import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 
 import { BottomTabNavigator } from '@/navigation/BottomTabNavigator';
+import { ProfileProvider } from '@/context/ProfileProvider';
+import { WorkoutsProvider } from '@/context/WorkoutsProvider';
 
 // Se llama en scope global (no adentro de App) para que el splash nativo
 // quede visible hasta que las fuentes terminen de cargar.
@@ -43,9 +45,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="auto" />
-      <NavigationContainer>
-        <BottomTabNavigator />
-      </NavigationContainer>
+      <ProfileProvider>
+        <WorkoutsProvider>
+          <NavigationContainer>
+            <BottomTabNavigator />
+          </NavigationContainer>
+        </WorkoutsProvider>
+      </ProfileProvider>
     </SafeAreaProvider>
   );
 }

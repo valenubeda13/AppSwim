@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -8,12 +8,11 @@ import {
   View,
 } from 'react-native';
 import { ChevronRight, Target, Trophy, User as UserIcon } from 'lucide-react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
-import { useProfileStats } from '@/hooks/useProfileStats';
+import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { CircularProgress, ProfileHeader, SectionCard } from '@/components';
 import { EmptyState } from '@/components/ui';
 import { formatMeters, parseLocalDate } from '@/utils/formatters';
@@ -29,16 +28,8 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>;
  * "Próximamente" hasta que exista Mis Marcas.
  */
 export function ProfileScreen({ navigation }: Props) {
-  const { profile, isLoading, error, reload } = useProfile();
-  const { stats } = useProfileStats();
-
-  // Editar perfil (lápiz) vive en otra instancia de useProfile; se
-  // refresca acá al volver para reflejar los cambios.
-  useFocusEffect(
-    useCallback(() => {
-      reload();
-    }, [reload])
-  );
+  const { profile, isLoading, error } = useProfile();
+  const { stats } = useWorkoutStats();
 
   if (isLoading && !profile) {
     return (
