@@ -17,7 +17,9 @@ import {
 } from '@/components/ui';
 import { getItem, removeItem, setItem, STORAGE_KEYS } from '@/services/storage';
 import { workoutRepository } from '@/services/repositories';
-import { toIsoDate } from '@/utils/formatters';
+import { toISODate } from '@/utils/date';
+import { useWorkouts } from '@/hooks/useWorkouts';
+import { clearSeedWorkouts, SEED_NOTE, seedWorkouts } from '@/utils/dev/seedWorkouts';
 
 interface StorageProbe {
   savedAt: string;
@@ -57,6 +59,22 @@ export function DevPlaygroundScreen() {
     setProbe(next);
   };
 
+  const { workouts, addWorkout, deleteWorkout } = useWorkouts();
+  const [seedBusy, setSeedBusy] = useState(false);
+  const seedCount = workouts.filter((w) => w.notes === SEED_NOTE).length;
+
+  // Pasa por el WorkoutsProvider: Inicio, Entrenamientos y Perfil se
+  // actualizan solas con los datos de ejemplo.
+  const runSeed = async (action: 'load' | 'clear') => {
+    setSeedBusy(true);
+    try {
+      if (action === 'load') await seedWorkouts(addWorkout);
+      else await clearSeedWorkouts(workouts, deleteWorkout);
+    } finally {
+      setSeedBusy(false);
+    }
+  };
+
   const [crudLog, setCrudLog] = useState<string[]>([]);
   const [crudRunning, setCrudRunning] = useState(false);
 
@@ -78,7 +96,7 @@ export function DevPlaygroundScreen() {
     let createdId: string | null = null;
     try {
       const created = await workoutRepository.create({
-        date: toIsoDate(new Date()),
+        date: toISODate(new Date()),
         poolLength: 25,
         totalMeters: 1500,
         durationSeconds: 1800,
@@ -261,6 +279,32 @@ export function DevPlaygroundScreen() {
         <Button label="Guardar objeto de prueba" onPress={saveProbe} />
         <View style={{ height: spacing.sm }} />
         <Button label="Borrar" variant="ghost" onPress={clearProbe} />
+      </Card>
+
+      <View style={{ height: spacing.xl }} />
+
+      <SectionHeader title="Datos de ejemplo" />
+      <Card>
+        <AppText variant="caption" color={colors.textSecondary}>
+          Carga 15 entrenos de ejemplo del mes actual (marcados como seed). Borrar solo saca esos,
+          no toca los entrenos reales.
+        </AppText>
+        <AppText variant="bodyStrong" style={{ marginVertical: spacing.md }}>
+          {seedCount} entrenos de ejemplo cargados
+        </AppText>
+        <Button
+          label="Cargar entrenos de ejemplo"
+          loading={seedBusy}
+          disabled={seedBusy}
+          onPress={() => runSeed('load')}
+        />
+        <View style={{ height: spacing.sm }} />
+        <Button
+          label="Borrar entrenos de ejemplo"
+          variant="ghost"
+          disabled={seedBusy || seedCount === 0}
+          onPress={() => runSeed('clear')}
+        />
       </Card>
 
       <View style={{ height: spacing.xl }} />

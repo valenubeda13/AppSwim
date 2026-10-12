@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Workout } from '@/types';
-import { toIsoDate } from '@/utils/formatters';
-import { computeStreakDays, startOfWeekIso, sumWorkouts } from '@/utils/workoutStats';
+import { startOfWeekISO, toISODate } from '@/utils/date';
+import { computeStreakDays, groupByMonth, sumDuration, sumMeters } from '@/utils/stats';
 import { useWorkouts } from './useWorkouts';
 
 /** Totales de un conjunto de entrenamientos. */
@@ -26,8 +26,7 @@ export interface WorkoutStats {
 const EMPTY_TOTALS: WorkoutTotals = { workouts: 0, meters: 0, seconds: 0 };
 
 function totalsOf(workouts: Workout[]): WorkoutTotals {
-  const { totalMeters, totalSeconds } = sumWorkouts(workouts);
-  return { workouts: workouts.length, meters: totalMeters, seconds: totalSeconds };
+  return { workouts: workouts.length, meters: sumMeters(workouts), seconds: sumDuration(workouts) };
 }
 
 /**
@@ -38,25 +37,19 @@ export function useWorkoutStats(): { stats: WorkoutStats; isLoading: boolean } {
   const { workouts, isLoading } = useWorkouts();
 
   const stats = useMemo<WorkoutStats>(() => {
-    const listsByMonth: Record<string, Workout[]> = {};
-    for (const workout of workouts) {
-      (listsByMonth[workout.date.slice(0, 7)] ??= []).push(workout);
-    }
     const byMonth = Object.fromEntries(
-      Object.entries(listsByMonth).map(([month, list]) => [month, totalsOf(list)])
+      groupByMonth(workouts).map(({ month, workouts: list }) => [month, totalsOf(list)])
     );
 
     // Fecha local (no toISOString, que es UTC y a la noche ya es el día/mes siguiente).
-    const currentMonth = toIsoDate(new Date()).slice(0, 7);
-    const weekStart = startOfWeekIso();
+    const currentMonth = toISODate(new Date()).slice(0, 7);
+    const weekStart = startOfWeekISO();
 
     return {
       total: totalsOf(workouts),
       thisMonth: byMonth[currentMonth] ?? EMPTY_TOTALS,
       byMonth,
-      currentWeekMeters: workouts
-        .filter((w) => w.date >= weekStart)
-        .reduce((sum, w) => sum + w.totalMeters, 0),
+      currentWeekMeters: sumMeters(workouts.filter((w) => w.date >= weekStart)),
       streakDays: computeStreakDays(workouts),
     };
   }, [workouts]);

@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { colors, spacing } from '@/theme';
-import { getGreeting } from '@/utils/formatters';
+import { getGreeting } from '@/utils/format';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useProfile } from '@/hooks/useProfile';
 import { HomeHeader, QuickAccessCard, SummaryCard, TipCard, SectionTitle } from '@/components';

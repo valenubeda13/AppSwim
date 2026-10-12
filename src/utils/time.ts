@@ -1,0 +1,47 @@
+/**
+ * Tiempos. Se guardan como enteros (duración de entrenos en segundos,
+ * marcas en milisegundos) y se formatean recién al mostrarlos.
+ */
+
+const pad2 = (value: number) => String(value).padStart(2, '0');
+
+/**
+ * Duración de un entreno: 3900 -> "1 h 05 min", 2700 -> "45 min".
+ * Redondea al minuto.
+ */
+export function formatDuration(seconds: number): string {
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours} h ${pad2(minutes)} min` : `${minutes} min`;
+}
+
+/**
+ * Tiempo de una marca, con centésimas: 62450 -> "1:02.45", 28300 -> "28.30".
+ * Redondea a la centésima.
+ */
+export function formatSwimTime(ms: number): string {
+  const totalHundredths = Math.round(ms / 10);
+  const minutes = Math.floor(totalHundredths / 6000);
+  const seconds = Math.floor(totalHundredths / 100) % 60;
+  const hundredths = totalHundredths % 100;
+  return minutes > 0
+    ? `${minutes}:${pad2(seconds)}.${pad2(hundredths)}`
+    : `${seconds}.${pad2(hundredths)}`;
+}
+
+/**
+ * Texto "hh:mm:ss" o "mm:ss" -> segundos: "01:05:00" -> 3900, "45:30" -> 2730.
+ * Devuelve null si el texto no tiene ese formato (ej. "1:75", "abc").
+ */
+export function parseDuration(text: string): number | null {
+  const parts = text.trim().split(':');
+  if (parts.length < 2 || parts.length > 3) return null;
+  if (!parts.every((part) => /^\d+$/.test(part))) return null;
+
+  const numbers = parts.map(Number);
+  // Minutos y segundos (todo lo que no es la primera parte) van de 0 a 59.
+  if (numbers.slice(1).some((n) => n > 59)) return null;
+
+  return numbers.reduce((total, n) => total * 60 + n, 0);
+}

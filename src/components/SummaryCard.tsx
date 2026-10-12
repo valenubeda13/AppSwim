@@ -4,7 +4,8 @@ import { Waves, Activity, Timer } from 'lucide-react-native';
 import { colors, radius, shadow, spacing } from '@/theme';
 import { StatItem } from './StatItem';
 import type { WorkoutTotals } from '@/hooks/useWorkoutStats';
-import { formatDuration, formatMeters } from '@/utils/formatters';
+import { formatNumber } from '@/utils/format';
+import { formatDuration } from '@/utils/time';
 
 interface SummaryCardProps {
   /** Totales del mes actual. */
@@ -16,8 +17,6 @@ interface SummaryCardProps {
  * separadas por líneas divisorias verticales (estilo Strava).
  */
 export function SummaryCard({ totals }: SummaryCardProps) {
-  const { hours, minutes } = formatDuration(totals.seconds);
-
   return (
     <View style={[styles.card, shadow.card]}>
       <StatItem
@@ -34,7 +33,7 @@ export function SummaryCard({ totals }: SummaryCardProps) {
         icon={Waves}
         iconColor={colors.accent}
         iconBackground={colors.accentLight}
-        value={formatMeters(totals.meters)}
+        value={formatNumber(totals.meters)}
         unit="m"
         label={'Metros totales\neste mes'}
       />
@@ -45,8 +44,7 @@ export function SummaryCard({ totals }: SummaryCardProps) {
         icon={Timer}
         iconColor={colors.tertiary}
         iconBackground={colors.tertiaryLight}
-        value={`${hours} h ${minutes}`}
-        unit="min"
+        value={formatDuration(totals.seconds)}
         label={'Tiempo total\neste mes'}
       />
     </View>

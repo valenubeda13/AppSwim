@@ -3,7 +3,9 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Waves, Timer } from 'lucide-react-native';
 import { colors, fontFamily, radius, shadow, spacing, typography } from '@/theme';
 import { Workout } from '@/types';
-import { formatDateLabel, formatMeters } from '@/utils/formatters';
+import { formatDateLabel } from '@/utils/date';
+import { formatMeters } from '@/utils/format';
+import { formatDuration } from '@/utils/time';
 
 interface WorkoutListItemProps {
   workout: Workout;
@@ -45,11 +47,11 @@ export function WorkoutListItem({ workout, onPress }: WorkoutListItemProps) {
       <View style={styles.metricsRow}>
         <View style={styles.metric}>
           <Waves size={16} color={colors.accent} strokeWidth={2.2} />
-          <Text style={styles.metricValue}>{formatMeters(workout.totalMeters)} m</Text>
+          <Text style={styles.metricValue}>{formatMeters(workout.totalMeters)}</Text>
         </View>
         <View style={styles.metric}>
           <Timer size={16} color={colors.tertiary} strokeWidth={2.2} />
-          <Text style={styles.metricValue}>{Math.round(workout.durationSeconds / 60)} min</Text>
+          <Text style={styles.metricValue}>{formatDuration(workout.durationSeconds)}</Text>
         </View>
         <Text style={styles.poolLength}>Pileta {workout.poolLength} m</Text>
       </View>

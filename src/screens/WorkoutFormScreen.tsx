@@ -18,7 +18,7 @@ import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { SegmentedControl } from '@/components/ui';
 import { Intensity, NewWorkout, PoolLength } from '@/types';
-import { toIsoDate } from '@/utils/formatters';
+import { isISODate, toISODate } from '@/utils/date';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutForm'>;
@@ -51,13 +51,11 @@ const QUICK_DATES = [
   { label: 'Anteayer', offset: 2 },
 ];
 
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
 function quickDateIso(offsetDays: number): string {
   const date = new Date();
   date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() - offsetDays);
-  return toIsoDate(date);
+  return toISODate(date);
 }
 
 /**
@@ -80,7 +78,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<WorkoutFormValues>({
     defaultValues: {
-      date: toIsoDate(new Date()),
+      date: toISODate(new Date()),
       poolLength: 25,
       totalMeters: '',
       durationMinutes: '',
@@ -184,7 +182,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
             name="date"
             rules={{
               required: 'La fecha es obligatoria',
-              pattern: { value: DATE_REGEX, message: 'Formato AAAA-MM-DD' },
+              validate: (value) => isISODate(value) || 'Fecha inválida (formato AAAA-MM-DD)',
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput

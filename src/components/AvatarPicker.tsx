@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Camera } from 'lucide-react-native';
 import { colors, radius, shadow, typography } from '@/theme';
-import { getInitials } from '@/utils/formatters';
+import { getInitials } from '@/utils/format';
 
 interface AvatarPickerProps {
   name: string;

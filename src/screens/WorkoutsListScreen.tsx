@@ -15,7 +15,8 @@ import { useWorkouts } from '@/hooks/useWorkouts';
 import { WorkoutListItem } from '@/components';
 import { EmptyState } from '@/components/ui';
 import { Workout } from '@/types';
-import { formatMonthTitle } from '@/utils/formatters';
+import { formatMonthTitle } from '@/utils/date';
+import { groupByMonth } from '@/utils/stats';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutsList'>;
@@ -25,27 +26,16 @@ interface WorkoutSection {
   data: Workout[];
 }
 
-function groupByMonth(workouts: Workout[]): WorkoutSection[] {
-  const sections: WorkoutSection[] = [];
-  const indexByKey = new Map<string, number>();
-
-  for (const workout of workouts) {
-    const key = workout.date.slice(0, 7);
-    let index = indexByKey.get(key);
-    if (index === undefined) {
-      index = sections.length;
-      indexByKey.set(key, index);
-      sections.push({ title: formatMonthTitle(workout.date), data: [] });
-    }
-    sections[index].data.push(workout);
-  }
-
-  return sections;
+function toSections(workouts: Workout[]): WorkoutSection[] {
+  return groupByMonth(workouts).map(({ month, workouts: data }) => ({
+    title: formatMonthTitle(`${month}-01`),
+    data,
+  }));
 }
 
 export function WorkoutsListScreen({ navigation }: Props) {
   const { workouts, isLoading, error, reload } = useWorkouts();
-  const sections = useMemo(() => groupByMonth(workouts), [workouts]);
+  const sections = useMemo(() => toSections(workouts), [workouts]);
 
   if (isLoading) {
     return (

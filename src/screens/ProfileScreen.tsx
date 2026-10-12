@@ -15,7 +15,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { CircularProgress, ProfileHeader, SectionCard } from '@/components';
 import { EmptyState } from '@/components/ui';
-import { formatMeters, parseLocalDate } from '@/utils/formatters';
+import { parseISODate } from '@/utils/date';
+import { formatMeters } from '@/utils/format';
 import { ProfileStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>;
@@ -40,7 +41,7 @@ export function ProfileScreen({ navigation }: Props) {
   }
 
   const swimmingSinceYear = profile?.swimmingSince
-    ? parseLocalDate(profile.swimmingSince).getFullYear()
+    ? parseISODate(profile.swimmingSince).getFullYear()
     : undefined;
   const weeklyGoal = profile?.weeklyGoalMeters;
   const weeklyProgress = weeklyGoal ? Math.round((stats.currentWeekMeters / weeklyGoal) * 100) : 0;
@@ -72,7 +73,7 @@ export function ProfileScreen({ navigation }: Props) {
                 <View style={styles.goalTextWrapper}>
                   <Text style={styles.goalTitle}>Meta semanal</Text>
                   <Text style={styles.goalSubtitle}>
-                    {formatMeters(stats.currentWeekMeters)} m de {formatMeters(weeklyGoal)} m
+                    {formatMeters(stats.currentWeekMeters)} de {formatMeters(weeklyGoal)}
                   </Text>
                 </View>
               </View>
@@ -89,7 +90,7 @@ export function ProfileScreen({ navigation }: Props) {
               <Text style={styles.dataLabel}>Meta semanal</Text>
               <View style={styles.dataValueRow}>
                 <Text style={styles.dataValue} numberOfLines={1}>
-                  {weeklyGoal ? `${formatMeters(weeklyGoal)} m` : 'Sin definir'}
+                  {weeklyGoal ? formatMeters(weeklyGoal) : 'Sin definir'}
                 </Text>
                 <ChevronRight size={18} color={colors.textTertiary} strokeWidth={2.2} />
               </View>
