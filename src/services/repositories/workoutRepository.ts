@@ -1,6 +1,6 @@
 import { Intensity, NewWorkout, SwimStroke, Workout, WorkoutSet } from '@/types';
 import { generateId } from '@/utils/id';
-import { getItem, setItem, STORAGE_KEYS } from '../storage';
+import { createWriteQueue, getItem, setItem, STORAGE_KEYS } from '../storage';
 
 /** Forma con la que se guardaban los entrenos antes de pasar a `durationSeconds`. */
 interface LegacyWorkout {
@@ -85,6 +85,9 @@ export interface WorkoutRepository {
   remove(id: string): Promise<void>;
 }
 
+/** Serializa las escrituras de esta clave (ver createWriteQueue). */
+const enqueue = createWriteQueue();
+
 /** Implementación local: guarda la lista completa en AsyncStorage. */
 export const localWorkoutRepository: WorkoutRepository = {
   async getAll() {
@@ -95,37 +98,43 @@ export const localWorkoutRepository: WorkoutRepository = {
     return (await readAll()).find((w) => w.id === id) ?? null;
   },
 
-  async create(input) {
-    const now = new Date().toISOString();
-    const workout: Workout = { ...input, id: generateId(), createdAt: now, updatedAt: now };
-    const all = await readAll();
-    await setItem(STORAGE_KEYS.workouts, [workout, ...all]);
-    return workout;
+  create(input) {
+    return enqueue(async () => {
+      const now = new Date().toISOString();
+      const workout: Workout = { ...input, id: generateId(), createdAt: now, updatedAt: now };
+      const all = await readAll();
+      await setItem(STORAGE_KEYS.workouts, [workout, ...all]);
+      return workout;
+    });
   },
 
-  async update(id, changes) {
-    const all = await readAll();
-    const index = all.findIndex((w) => w.id === id);
-    if (index === -1) throw new Error('No se encontró el entrenamiento.');
+  update(id, changes) {
+    return enqueue(async () => {
+      const all = await readAll();
+      const index = all.findIndex((w) => w.id === id);
+      if (index === -1) throw new Error('No se encontró el entrenamiento.');
 
-    const updated: Workout = {
-      ...all[index],
-      ...changes,
-      id,
-      createdAt: all[index].createdAt,
-      updatedAt: new Date().toISOString(),
-    };
-    all[index] = updated;
-    await setItem(STORAGE_KEYS.workouts, all);
-    return updated;
+      const updated: Workout = {
+        ...all[index],
+        ...changes,
+        id,
+        createdAt: all[index].createdAt,
+        updatedAt: new Date().toISOString(),
+      };
+      all[index] = updated;
+      await setItem(STORAGE_KEYS.workouts, all);
+      return updated;
+    });
   },
 
-  async remove(id) {
-    const all = await readAll();
-    await setItem(
-      STORAGE_KEYS.workouts,
-      all.filter((w) => w.id !== id)
-    );
+  remove(id) {
+    return enqueue(async () => {
+      const all = await readAll();
+      await setItem(
+        STORAGE_KEYS.workouts,
+        all.filter((w) => w.id !== id)
+      );
+    });
   },
 };
 

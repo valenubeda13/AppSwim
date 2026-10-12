@@ -1,6 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { ProfileInput, UserProfile } from '@/types';
-import { getItem, setItem, STORAGE_KEYS } from '../storage';
+import { createWriteQueue, getItem, setItem, STORAGE_KEYS } from '../storage';
 
 const DEFAULT_PROFILE: UserProfile = {
   name: 'Nadador/a',
@@ -67,6 +67,9 @@ export interface ProfileRepository {
   setAvatar(localUri: string): Promise<UserProfile>;
 }
 
+/** Serializa las escrituras de esta clave (ver createWriteQueue). */
+const enqueue = createWriteQueue();
+
 /** Implementación local: AsyncStorage + la foto copiada al filesystem. */
 export const localProfileRepository: ProfileRepository = {
   async get() {
@@ -79,22 +82,24 @@ export const localProfileRepository: ProfileRepository = {
    * campos viejos (username, preferencias de la cuenta, nombres anteriores)
    * quede limpio al guardar.
    */
-  async update(input) {
-    const current = await readProfile();
-    const updated: UserProfile = {
-      avatarUrl: current.avatarUrl,
-      name: input.name,
-      club: input.club || undefined,
-      birthYear: input.birthYear,
-      usualPool: input.usualPool,
-      weeklyGoalMeters: input.weeklyGoalMeters,
-      bio: input.bio || undefined,
-      gender: input.gender,
-      swimmingSince: input.swimmingSince || undefined,
-    };
+  update(input) {
+    return enqueue(async () => {
+      const current = await readProfile();
+      const updated: UserProfile = {
+        avatarUrl: current.avatarUrl,
+        name: input.name,
+        club: input.club || undefined,
+        birthYear: input.birthYear,
+        usualPool: input.usualPool,
+        weeklyGoalMeters: input.weeklyGoalMeters,
+        bio: input.bio || undefined,
+        gender: input.gender,
+        swimmingSince: input.swimmingSince || undefined,
+      };
 
-    await setItem(STORAGE_KEYS.profile, updated);
-    return updated;
+      await setItem(STORAGE_KEYS.profile, updated);
+      return updated;
+    });
   },
 
   /**
@@ -103,20 +108,22 @@ export const localProfileRepository: ProfileRepository = {
    * la copia. Sin Supabase Storage no hay a dónde subirla: la app la lee
    * directo desde el filesystem del dispositivo.
    */
-  async setAvatar(localUri) {
-    const current = await readProfile();
+  setAvatar(localUri) {
+    return enqueue(async () => {
+      const current = await readProfile();
 
-    const source = new File(localUri);
-    const extension = source.extension || '.jpg';
-    const destination = new File(Paths.document, `${AVATAR_PREFIX}${Date.now()}${extension}`);
-    await source.copy(destination);
+      const source = new File(localUri);
+      const extension = source.extension || '.jpg';
+      const destination = new File(Paths.document, `${AVATAR_PREFIX}${Date.now()}${extension}`);
+      await source.copy(destination);
 
-    const updated: UserProfile = { ...current, avatarUrl: destination.uri };
-    await setItem(STORAGE_KEYS.profile, updated);
+      const updated: UserProfile = { ...current, avatarUrl: destination.uri };
+      await setItem(STORAGE_KEYS.profile, updated);
 
-    // Recién con el perfil ya guardado borramos la copia anterior.
-    if (current.avatarUrl) deleteOwnedAvatar(current.avatarUrl);
-    return updated;
+      // Recién con el perfil ya guardado borramos la copia anterior.
+      if (current.avatarUrl) deleteOwnedAvatar(current.avatarUrl);
+      return updated;
+    });
   },
 };
 
