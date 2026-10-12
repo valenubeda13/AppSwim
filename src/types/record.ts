@@ -14,3 +14,6 @@ export interface PersonalRecord {
   event?: string;
   notes?: string;
 }
+
+/** Datos para crear o editar una marca (el id lo pone el repositorio) */
+export type NewPersonalRecord = Omit<PersonalRecord, 'id'>;

@@ -1,8 +1,9 @@
 import { Reminder, ReminderInput } from '@/types';
-import { generateId, storage, STORAGE_KEYS } from './storage';
+import { generateId } from '@/utils/id';
+import { getItem, setItem, STORAGE_KEYS } from './storage';
 
 async function readAll(): Promise<Reminder[]> {
-  return (await storage.get<Reminder[]>(STORAGE_KEYS.reminders)) ?? [];
+  return (await getItem<Reminder[]>(STORAGE_KEYS.reminders)) ?? [];
 }
 
 function sortedByTime(reminders: Reminder[]): Reminder[] {
@@ -17,7 +18,7 @@ export const reminderService = {
   async create(input: ReminderInput): Promise<Reminder> {
     const reminder: Reminder = { ...input, id: generateId() };
     const all = await readAll();
-    await storage.set(STORAGE_KEYS.reminders, [...all, reminder]);
+    await setItem(STORAGE_KEYS.reminders, [...all, reminder]);
     return reminder;
   },
 
@@ -28,13 +29,13 @@ export const reminderService = {
 
     const updated: Reminder = { ...input, id };
     all[index] = updated;
-    await storage.set(STORAGE_KEYS.reminders, all);
+    await setItem(STORAGE_KEYS.reminders, all);
     return updated;
   },
 
   async remove(id: string): Promise<void> {
     const all = await readAll();
-    await storage.set(
+    await setItem(
       STORAGE_KEYS.reminders,
       all.filter((r) => r.id !== id)
     );

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NewWorkout, Workout } from '@/types';
-import { workoutService } from '@/services/workoutService';
+import { workoutRepository } from '@/services/repositories';
 
 /**
  * Entrenamientos guardados localmente (AsyncStorage). Usado por la
@@ -15,7 +15,7 @@ export function useWorkouts() {
     setIsLoading(true);
     setError(null);
     try {
-      setWorkouts(await workoutService.getAll());
+      setWorkouts(await workoutRepository.getAll());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los entrenamientos.');
     } finally {
@@ -33,7 +33,7 @@ export function useWorkouts() {
 
   const createWorkout = useCallback(
     async (input: NewWorkout) => {
-      await workoutService.create(input);
+      await workoutRepository.create(input);
       await load();
     },
     [load]
@@ -41,7 +41,7 @@ export function useWorkouts() {
 
   const updateWorkout = useCallback(
     async (id: string, input: NewWorkout) => {
-      await workoutService.update(id, input);
+      await workoutRepository.update(id, input);
       await load();
     },
     [load]
@@ -49,7 +49,7 @@ export function useWorkouts() {
 
   const deleteWorkout = useCallback(
     async (id: string) => {
-      await workoutService.remove(id);
+      await workoutRepository.remove(id);
       await load();
     },
     [load]

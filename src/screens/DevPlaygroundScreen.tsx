@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Bell, Settings, Trash2, Waves, Timer } from 'lucide-react-native';
 import { colors, spacing, typography } from '@/theme';
@@ -15,6 +15,14 @@ import {
   SegmentedControl,
   StatCard,
 } from '@/components/ui';
+import { getItem, removeItem, setItem, STORAGE_KEYS } from '@/services/storage';
+import { workoutRepository } from '@/services/repositories';
+import { toIsoDate } from '@/utils/formatters';
+
+interface StorageProbe {
+  savedAt: string;
+  counter: number;
+}
 
 const POOL_OPTIONS: { value: 25 | 50; label: string }[] = [
   { value: 25, label: '25 m' },
@@ -30,6 +38,91 @@ const POOL_OPTIONS: { value: 25 | 50; label: string }[] = [
 export function DevPlaygroundScreen() {
   const [loading, setLoading] = useState(false);
   const [poolLength, setPoolLength] = useState<25 | 50>(25);
+  const [probe, setProbe] = useState<StorageProbe | null>(null);
+
+  // Al abrir, lee lo guardado: si sobrevive a cerrar y reabrir la app, el
+  // storage persiste (criterio de hecho de la card 2.2).
+  useEffect(() => {
+    void (async () => {
+      setProbe(await getItem<StorageProbe>(STORAGE_KEYS.devPlayground));
+    })();
+  }, []);
+
+  const saveProbe = async () => {
+    const next: StorageProbe = {
+      savedAt: new Date().toISOString(),
+      counter: (probe?.counter ?? 0) + 1,
+    };
+    await setItem(STORAGE_KEYS.devPlayground, next);
+    setProbe(next);
+  };
+
+  const [crudLog, setCrudLog] = useState<string[]>([]);
+  const [crudRunning, setCrudRunning] = useState(false);
+
+  /**
+   * CRUD completo de un workout contra el repositorio (criterio de hecho de
+   * la card 2.3). Crea, lee, edita y borra un entreno de prueba; al final
+   * no queda nada guardado.
+   */
+  const runWorkoutCrud = async () => {
+    const log: string[] = [];
+    const step = (ok: boolean, text: string) => {
+      log.push(`${ok ? '✓' : '✗'} ${text}`);
+      setCrudLog([...log]);
+      if (!ok) throw new Error(text);
+    };
+
+    setCrudRunning(true);
+    setCrudLog([]);
+    let createdId: string | null = null;
+    try {
+      const created = await workoutRepository.create({
+        date: toIsoDate(new Date()),
+        poolLength: 25,
+        totalMeters: 1500,
+        durationSeconds: 1800,
+        intensity: 'medium',
+        sets: [],
+        notes: 'Entreno de prueba (DevPlayground)',
+      });
+      createdId = created.id;
+      step(Boolean(created.id && created.createdAt), `create → id ${created.id.slice(0, 8)}…`);
+
+      const read = await workoutRepository.getById(created.id);
+      step(read?.totalMeters === 1500, 'getById → lo encuentra con 1500 m');
+
+      const all = await workoutRepository.getAll();
+      step(
+        all.some((w) => w.id === created.id),
+        `getAll → aparece en la lista (${all.length} en total)`
+      );
+
+      const updated = await workoutRepository.update(created.id, { totalMeters: 2000 });
+      step(
+        updated.totalMeters === 2000 && updated.updatedAt >= created.updatedAt,
+        'update → 2000 m y updatedAt nuevo'
+      );
+
+      await workoutRepository.remove(created.id);
+      createdId = null;
+      step((await workoutRepository.getById(created.id)) === null, 'remove → ya no existe');
+    } catch (err) {
+      if (!log.some((line) => line.startsWith('✗'))) {
+        log.push(`✗ ${err instanceof Error ? err.message : String(err)}`);
+        setCrudLog([...log]);
+      }
+      // Si falló a mitad de camino, no dejamos el entreno de prueba guardado.
+      if (createdId) await workoutRepository.remove(createdId).catch(() => {});
+    } finally {
+      setCrudRunning(false);
+    }
+  };
+
+  const clearProbe = async () => {
+    await removeItem(STORAGE_KEYS.devPlayground);
+    setProbe(null);
+  };
 
   return (
     <Screen>
@@ -153,6 +246,42 @@ export function DevPlaygroundScreen() {
       <SectionHeader title="SegmentedControl" />
       <Card>
         <SegmentedControl options={POOL_OPTIONS} value={poolLength} onChange={setPoolLength} />
+      </Card>
+
+      <View style={{ height: spacing.xl }} />
+
+      <SectionHeader title="Storage" />
+      <Card>
+        <AppText variant="caption" color={colors.textSecondary}>
+          Guardá, cerrá la app del todo y volvé a abrirla: tiene que aparecer el mismo objeto.
+        </AppText>
+        <AppText variant="bodyStrong" style={{ marginVertical: spacing.md }}>
+          {probe ? `#${probe.counter} — ${probe.savedAt}` : 'Nada guardado'}
+        </AppText>
+        <Button label="Guardar objeto de prueba" onPress={saveProbe} />
+        <View style={{ height: spacing.sm }} />
+        <Button label="Borrar" variant="ghost" onPress={clearProbe} />
+      </Card>
+
+      <View style={{ height: spacing.xl }} />
+
+      <SectionHeader title="Repositorio de entrenos" />
+      <Card>
+        <AppText variant="caption" color={colors.textSecondary}>
+          Crea, lee, edita y borra un entreno de prueba usando workoutRepository.
+        </AppText>
+        {crudLog.map((line) => (
+          <AppText
+            key={line}
+            variant="body"
+            color={line.startsWith('✓') ? colors.success : colors.error}
+            style={{ marginTop: spacing.xs }}
+          >
+            {line}
+          </AppText>
+        ))}
+        <View style={{ height: spacing.md }} />
+        <Button label="Probar CRUD" loading={crudRunning} onPress={runWorkoutCrud} />
       </Card>
 
       <View style={{ height: spacing.xl }} />

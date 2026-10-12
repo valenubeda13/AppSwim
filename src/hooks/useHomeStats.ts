@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Workout } from '@/types';
-import { workoutService } from '@/services/workoutService';
+import { workoutRepository } from '@/services/repositories';
 import { computeStreakDays, isSameMonth, sumWorkouts } from '@/utils/workoutStats';
 
 /** Estadísticas resumidas para la pantalla de Inicio (mes actual) */
@@ -34,7 +34,7 @@ export function useHomeStats() {
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    const workouts = await workoutService.getAll();
+    const workouts = await workoutRepository.getAll();
     setStats(computeStats(workouts));
     setIsLoading(false);
   }, []);

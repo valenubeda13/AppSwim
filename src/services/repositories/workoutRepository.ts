@@ -1,5 +1,6 @@
 import { Intensity, NewWorkout, SwimStroke, Workout, WorkoutSet } from '@/types';
-import { generateId, storage, STORAGE_KEYS } from './storage';
+import { generateId } from '@/utils/id';
+import { getItem, setItem, STORAGE_KEYS } from '../storage';
 
 /** Forma con la que se guardaban los entrenos antes de pasar a `durationSeconds`. */
 interface LegacyWorkout {
@@ -57,7 +58,7 @@ function migrate(stored: Workout | LegacyWorkout): Workout {
 }
 
 async function readAll(): Promise<Workout[]> {
-  const stored = await storage.get<(Workout | LegacyWorkout)[]>(STORAGE_KEYS.workouts);
+  const stored = await getItem<(Workout | LegacyWorkout)[]>(STORAGE_KEYS.workouts);
   return (stored ?? []).map(migrate);
 }
 
@@ -68,40 +69,65 @@ function sortedByDateDesc(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
-export const workoutService = {
-  async getAll(): Promise<Workout[]> {
+/**
+ * Qué operaciones hay sobre los entrenamientos, sin decir cómo se guardan.
+ * El resto de la app depende solo de esta interfaz: cambiar AsyncStorage
+ * por otra base (ej. Supabase) es escribir otra implementación.
+ */
+export interface WorkoutRepository {
+  /** Todos los entrenos, del más reciente al más viejo. */
+  getAll(): Promise<Workout[]>;
+  getById(id: string): Promise<Workout | null>;
+  /** Genera id y createdAt/updatedAt. */
+  create(input: NewWorkout): Promise<Workout>;
+  /** Pisa solo los campos presentes en `changes` y actualiza updatedAt. */
+  update(id: string, changes: Partial<NewWorkout>): Promise<Workout>;
+  remove(id: string): Promise<void>;
+}
+
+/** Implementación local: guarda la lista completa en AsyncStorage. */
+export const localWorkoutRepository: WorkoutRepository = {
+  async getAll() {
     return sortedByDateDesc(await readAll());
   },
 
-  async create(input: NewWorkout): Promise<Workout> {
+  async getById(id) {
+    return (await readAll()).find((w) => w.id === id) ?? null;
+  },
+
+  async create(input) {
     const now = new Date().toISOString();
     const workout: Workout = { ...input, id: generateId(), createdAt: now, updatedAt: now };
     const all = await readAll();
-    await storage.set(STORAGE_KEYS.workouts, [workout, ...all]);
+    await setItem(STORAGE_KEYS.workouts, [workout, ...all]);
     return workout;
   },
 
-  async update(id: string, input: NewWorkout): Promise<Workout> {
+  async update(id, changes) {
     const all = await readAll();
     const index = all.findIndex((w) => w.id === id);
     if (index === -1) throw new Error('No se encontró el entrenamiento.');
 
     const updated: Workout = {
-      ...input,
+      ...all[index],
+      ...changes,
       id,
       createdAt: all[index].createdAt,
       updatedAt: new Date().toISOString(),
     };
     all[index] = updated;
-    await storage.set(STORAGE_KEYS.workouts, all);
+    await setItem(STORAGE_KEYS.workouts, all);
     return updated;
   },
 
-  async remove(id: string): Promise<void> {
+  async remove(id) {
     const all = await readAll();
-    await storage.set(
+    await setItem(
       STORAGE_KEYS.workouts,
       all.filter((w) => w.id !== id)
     );
   },
 };
+
+/** La implementación que usa la app. Cambiar de backend = cambiar esta línea. */
+export const workoutRepository: WorkoutRepository = localWorkoutRepository;

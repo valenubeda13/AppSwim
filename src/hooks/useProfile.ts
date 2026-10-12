@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ProfileInput, UserProfile } from '@/types';
-import { profileService } from '@/services/profileService';
+import { profileRepository } from '@/services/repositories';
 
 /**
  * Perfil guardado localmente (AsyncStorage). Se reutiliza en la Home
@@ -15,7 +15,7 @@ export function useProfile() {
     setIsLoading(true);
     setError(null);
     try {
-      setProfile(await profileService.get());
+      setProfile(await profileRepository.get());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el perfil.');
     } finally {
@@ -32,11 +32,11 @@ export function useProfile() {
   }, [load]);
 
   const updateProfile = useCallback(async (input: ProfileInput) => {
-    setProfile(await profileService.update(input));
+    setProfile(await profileRepository.update(input));
   }, []);
 
   const updateAvatar = useCallback(async (localUri: string, _mimeType: string) => {
-    setProfile(await profileService.uploadAvatar(localUri));
+    setProfile(await profileRepository.setAvatar(localUri));
   }, []);
 
   return { profile, isLoading, error, reload: load, updateProfile, updateAvatar };

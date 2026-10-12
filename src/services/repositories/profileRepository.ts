@@ -1,6 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { ProfileInput, UserProfile } from '@/types';
-import { storage, STORAGE_KEYS } from './storage';
+import { getItem, setItem, STORAGE_KEYS } from '../storage';
 
 const DEFAULT_PROFILE: UserProfile = {
   name: 'Nadador/a',
@@ -43,7 +43,7 @@ function deleteOwnedAvatar(uri: string): void {
 
 async function readProfile(): Promise<UserProfile> {
   const stored: UserProfile & LegacyProfileFields =
-    (await storage.get<UserProfile & LegacyProfileFields>(STORAGE_KEYS.profile)) ?? DEFAULT_PROFILE;
+    (await getItem<UserProfile & LegacyProfileFields>(STORAGE_KEYS.profile)) ?? DEFAULT_PROFILE;
   const { goalMetersPerWeek, preferredPoolLength, ...rest } = stored;
   const profile: UserProfile = {
     ...rest,
@@ -55,8 +55,21 @@ async function readProfile(): Promise<UserProfile> {
     : profile;
 }
 
-export const profileService = {
-  async get(): Promise<UserProfile> {
+/**
+ * Perfil del usuario. Es uno solo (app local de un usuario), así que no hay
+ * getAll/getById/remove como en los otros repositorios.
+ */
+export interface ProfileRepository {
+  /** Si todavía no se guardó nada, devuelve un perfil por defecto. */
+  get(): Promise<UserProfile>;
+  update(input: ProfileInput): Promise<UserProfile>;
+  /** Guarda una copia de la foto elegida y la asigna como avatar. */
+  setAvatar(localUri: string): Promise<UserProfile>;
+}
+
+/** Implementación local: AsyncStorage + la foto copiada al filesystem. */
+export const localProfileRepository: ProfileRepository = {
+  async get() {
     return readProfile();
   },
 
@@ -66,7 +79,7 @@ export const profileService = {
    * campos viejos (username, preferencias de la cuenta, nombres anteriores)
    * quede limpio al guardar.
    */
-  async update(input: ProfileInput): Promise<UserProfile> {
+  async update(input) {
     const current = await readProfile();
     const updated: UserProfile = {
       avatarUrl: current.avatarUrl,
@@ -80,7 +93,7 @@ export const profileService = {
       swimmingSince: input.swimmingSince || undefined,
     };
 
-    await storage.set(STORAGE_KEYS.profile, updated);
+    await setItem(STORAGE_KEYS.profile, updated);
     return updated;
   },
 
@@ -90,7 +103,7 @@ export const profileService = {
    * la copia. Sin Supabase Storage no hay a dónde subirla: la app la lee
    * directo desde el filesystem del dispositivo.
    */
-  async uploadAvatar(localUri: string): Promise<UserProfile> {
+  async setAvatar(localUri) {
     const current = await readProfile();
 
     const source = new File(localUri);
@@ -99,10 +112,13 @@ export const profileService = {
     await source.copy(destination);
 
     const updated: UserProfile = { ...current, avatarUrl: destination.uri };
-    await storage.set(STORAGE_KEYS.profile, updated);
+    await setItem(STORAGE_KEYS.profile, updated);
 
     // Recién con el perfil ya guardado borramos la copia anterior.
     if (current.avatarUrl) deleteOwnedAvatar(current.avatarUrl);
     return updated;
   },
 };
+
+/** La implementación que usa la app. Cambiar de backend = cambiar esta línea. */
+export const profileRepository: ProfileRepository = localProfileRepository;
