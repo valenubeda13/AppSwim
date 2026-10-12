@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Workout, WorkoutInput } from '@/types';
+import { NewWorkout, Workout } from '@/types';
 import { workoutService } from '@/services/workoutService';
 
 /**
@@ -32,7 +32,7 @@ export function useWorkouts() {
   }, [load]);
 
   const createWorkout = useCallback(
-    async (input: WorkoutInput) => {
+    async (input: NewWorkout) => {
       await workoutService.create(input);
       await load();
     },
@@ -40,7 +40,7 @@ export function useWorkouts() {
   );
 
   const updateWorkout = useCallback(
-    async (id: string, input: WorkoutInput) => {
+    async (id: string, input: NewWorkout) => {
       await workoutService.update(id, input);
       await load();
     },

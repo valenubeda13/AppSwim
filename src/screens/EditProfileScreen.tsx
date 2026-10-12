@@ -11,30 +11,29 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, radius, spacing, typography } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
-import { AvatarPicker, SegmentedControl } from '@/components';
-import { Gender, ProfileInput } from '@/types';
+import { AvatarPicker } from '@/components';
+import { SegmentedControl } from '@/components/ui';
+import { Gender, PoolLength, ProfileInput } from '@/types';
 import { ProfileStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'EditProfile'>;
 
 interface EditProfileFormValues {
   name: string;
-  username: string;
   bio: string;
   gender: Gender;
   swimmingSinceYear: string;
-  goalMetersPerWeek: string;
-  preferredPoolLength: 25 | 50;
+  weeklyGoalMeters: string;
+  usualPool: PoolLength;
 }
 
 const BIO_WORD_LIMIT = 20;
-const USERNAME_COOLDOWN_DAYS = 30;
 const CURRENT_YEAR = new Date().getFullYear();
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [
@@ -42,7 +41,7 @@ const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'nadadora', label: 'Nadadora' },
 ];
 
-const POOL_OPTIONS: { value: 25 | 50; label: string }[] = [
+const POOL_OPTIONS: { value: PoolLength; label: string }[] = [
   { value: 25, label: '25 m' },
   { value: 50, label: '50 m' },
 ];
@@ -54,10 +53,8 @@ function countWords(text: string): number {
 
 /**
  * Editar perfil (lápiz del header): nombre, género, bio (máx. 20 palabras),
- * año en que arrancó a nadar, meta semanal, pileta preferida y nombre de
- * usuario (máx. 1 cambio cada 30 días, validado en el servidor por el
- * trigger enforce_username_rate_limit). Es el único lugar donde se editan
- * los datos y preferencias del perfil.
+ * año en que arrancó a nadar, meta semanal y pileta preferida. Es el único
+ * lugar donde se editan los datos y preferencias del perfil.
  */
 export function EditProfileScreen({ navigation }: Props) {
   const { profile, isLoading, updateProfile, updateAvatar } = useProfile();
@@ -68,17 +65,15 @@ export function EditProfileScreen({ navigation }: Props) {
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<EditProfileFormValues>({
     defaultValues: {
       name: '',
-      username: '',
       bio: '',
       gender: 'nadador',
       swimmingSinceYear: '',
-      goalMetersPerWeek: '',
-      preferredPoolLength: 25,
+      weeklyGoalMeters: '',
+      usualPool: 25,
     },
   });
 
@@ -86,26 +81,18 @@ export function EditProfileScreen({ navigation }: Props) {
     if (!profile) return;
     reset({
       name: profile.name,
-      username: profile.username ?? '',
       bio: profile.bio ?? '',
       gender: profile.gender ?? 'nadador',
       swimmingSinceYear: profile.swimmingSince
         ? String(new Date(profile.swimmingSince).getFullYear())
         : '',
-      goalMetersPerWeek:
-        profile.goalMetersPerWeek !== undefined ? String(profile.goalMetersPerWeek) : '',
-      preferredPoolLength: profile.preferredPoolLength ?? 25,
+      weeklyGoalMeters:
+        profile.weeklyGoalMeters !== undefined ? String(profile.weeklyGoalMeters) : '',
+      usualPool: profile.usualPool ?? 25,
     });
   }, [profile, reset]);
 
-  const bioWordCount = countWords(watch('bio'));
-
-  const usernameCooldownUntil = (() => {
-    if (!profile?.usernameUpdatedAt) return null;
-    const nextAllowed = new Date(profile.usernameUpdatedAt);
-    nextAllowed.setDate(nextAllowed.getDate() + USERNAME_COOLDOWN_DAYS);
-    return nextAllowed > new Date() ? nextAllowed : null;
-  })();
+  const bioWordCount = countWords(useWatch({ control, name: 'bio' }));
 
   const handlePickAvatar = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -143,11 +130,10 @@ export function EditProfileScreen({ navigation }: Props) {
 
     const input: ProfileInput = {
       name: values.name.trim(),
-      goalMetersPerWeek: values.goalMetersPerWeek.trim()
-        ? Number(values.goalMetersPerWeek)
+      weeklyGoalMeters: values.weeklyGoalMeters.trim()
+        ? Number(values.weeklyGoalMeters)
         : undefined,
-      preferredPoolLength: values.preferredPoolLength,
-      username: values.username.trim(),
+      usualPool: values.usualPool,
       bio: values.bio.trim(),
       gender: values.gender,
       swimmingSince: values.swimmingSinceYear.trim()
@@ -287,7 +273,7 @@ export function EditProfileScreen({ navigation }: Props) {
           <Text style={styles.label}>Meta semanal (metros, opcional)</Text>
           <Controller
             control={control}
-            name="goalMetersPerWeek"
+            name="weeklyGoalMeters"
             rules={{
               validate: (value) => !value.trim() || /^\d+$/.test(value) || 'Ingresá un número',
             }}
@@ -303,8 +289,8 @@ export function EditProfileScreen({ navigation }: Props) {
               />
             )}
           />
-          {errors.goalMetersPerWeek && (
-            <Text style={styles.fieldError}>{errors.goalMetersPerWeek.message}</Text>
+          {errors.weeklyGoalMeters && (
+            <Text style={styles.fieldError}>{errors.weeklyGoalMeters.message}</Text>
           )}
         </View>
 
@@ -312,47 +298,11 @@ export function EditProfileScreen({ navigation }: Props) {
           <Text style={styles.label}>Pileta preferida</Text>
           <Controller
             control={control}
-            name="preferredPoolLength"
+            name="usualPool"
             render={({ field: { onChange, value } }) => (
               <SegmentedControl options={POOL_OPTIONS} value={value} onChange={onChange} />
             )}
           />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Nombre de usuario</Text>
-          <View style={styles.usernameInputWrapper}>
-            <Text style={styles.usernamePrefix}>@</Text>
-            <Controller
-              control={control}
-              name="username"
-              rules={{
-                validate: (value) =>
-                  !value.trim() ||
-                  /^[a-z0-9_.]{3,20}$/i.test(value.trim()) ||
-                  'Entre 3 y 20 letras, números, "." o "_"',
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.usernameInput}
-                  placeholder="valen_swim"
-                  placeholderTextColor={colors.textTertiary}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!usernameCooldownUntil}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-          </View>
-          {errors.username && <Text style={styles.fieldError}>{errors.username.message}</Text>}
-          <Text style={styles.helperText}>
-            {usernameCooldownUntil
-              ? `Ya lo cambiaste este mes. Podés volver a cambiarlo a partir del ${usernameCooldownUntil.toLocaleDateString('es-AR')}.`
-              : 'Podés cambiarlo una vez por mes.'}
-          </Text>
         </View>
 
         {serverError && <Text style={styles.serverError}>{serverError}</Text>}
@@ -436,34 +386,9 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: 'top',
   },
-  usernameInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingLeft: spacing.md,
-  },
-  usernamePrefix: {
-    ...typography.body,
-    color: colors.textTertiary,
-  },
-  usernameInput: {
-    flex: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm + 2,
-    ...typography.body,
-    color: colors.textPrimary,
-  },
   fieldError: {
     ...typography.caption,
     color: colors.error,
-    marginTop: spacing.xs,
-  },
-  helperText: {
-    ...typography.caption,
-    color: colors.textTertiary,
     marginTop: spacing.xs,
   },
   serverError: {

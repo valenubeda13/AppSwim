@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 
 /**
  * Wrapper tipado sobre AsyncStorage.
@@ -28,7 +29,7 @@ export const STORAGE_KEYS = {
   reminders: '@swimapp/reminders',
 } as const;
 
-/** Genera un id simple para filas nuevas (no hay base de datos que lo asigne). */
+/** Genera un id (UUID v4) para filas nuevas (no hay base de datos que lo asigne). */
 export function generateId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return Crypto.randomUUID();
 }

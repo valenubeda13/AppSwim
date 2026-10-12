@@ -14,7 +14,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, spacing, typography } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
 import { useProfileStats } from '@/hooks/useProfileStats';
-import { CircularProgress, EmptyState, ProfileHeader, SectionCard } from '@/components';
+import { CircularProgress, ProfileHeader, SectionCard } from '@/components';
+import { EmptyState } from '@/components/ui';
 import { formatMeters, parseLocalDate } from '@/utils/formatters';
 import { ProfileStackParamList } from '@/navigation/types';
 
@@ -24,7 +25,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>;
  * Pantalla Perfil: header (nombre/bio/"nadador desde"), progreso de la
  * meta semanal, y datos/preferencias (nombre, meta, pileta) en filas de
  * solo lectura que abren Editar perfil (lápiz del header) para modificarse.
- * El lápiz también lleva a la bio/username/año. "Mis logros" queda en
+ * El lápiz también lleva a la bio/año. "Mis logros" queda en
  * "Próximamente" hasta que exista Mis Marcas.
  */
 export function ProfileScreen({ navigation }: Props) {
@@ -50,11 +51,9 @@ export function ProfileScreen({ navigation }: Props) {
   const swimmingSinceYear = profile?.swimmingSince
     ? parseLocalDate(profile.swimmingSince).getFullYear()
     : undefined;
-  const weeklyGoal = profile?.goalMetersPerWeek;
+  const weeklyGoal = profile?.weeklyGoalMeters;
   const weeklyProgress = weeklyGoal ? Math.round((stats.currentWeekMeters / weeklyGoal) * 100) : 0;
-  const poolLengthLabel = profile?.preferredPoolLength
-    ? `${profile.preferredPoolLength} m`
-    : 'Sin definir';
+  const poolLengthLabel = profile?.usualPool ? `${profile.usualPool} m` : 'Sin definir';
 
   const goToEditProfile = () => navigation.navigate('EditProfile');
 
@@ -63,7 +62,6 @@ export function ProfileScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <ProfileHeader
           name={profile?.name ?? 'Nadador/a'}
-          username={profile?.username}
           bio={profile?.bio}
           avatarUrl={profile?.avatarUrl}
           gender={profile?.gender}

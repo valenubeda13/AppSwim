@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
-import { HomeStats, Workout } from '@/types';
+import { Workout } from '@/types';
 import { workoutService } from '@/services/workoutService';
 import { computeStreakDays, isSameMonth, sumWorkouts } from '@/utils/workoutStats';
+
+/** Estadísticas resumidas para la pantalla de Inicio (mes actual) */
+export interface HomeStats {
+  workoutsThisMonth: number;
+  totalMetersThisMonth: number;
+  totalSecondsThisMonth: number;
+  currentStreakDays: number;
+}
 
 function computeStats(workouts: Workout[]): HomeStats {
   const now = new Date();
   const monthWorkouts = workouts.filter((w) => isSameMonth(w.date, now));
-  const { totalMeters, totalMinutes } = sumWorkouts(monthWorkouts);
+  const { totalMeters, totalSeconds } = sumWorkouts(monthWorkouts);
 
   return {
     workoutsThisMonth: monthWorkouts.length,
     totalMetersThisMonth: totalMeters,
-    totalMinutesThisMonth: totalMinutes,
+    totalSecondsThisMonth: totalSeconds,
     currentStreakDays: computeStreakDays(workouts),
   };
 }

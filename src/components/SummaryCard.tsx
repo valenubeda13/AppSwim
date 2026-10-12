@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Waves, Activity, Timer } from 'lucide-react-native';
 import { colors, radius, shadow, spacing } from '@/theme';
 import { StatItem } from './StatItem';
-import { HomeStats } from '@/types';
+import type { HomeStats } from '@/hooks/useHomeStats';
 import { formatDuration, formatMeters } from '@/utils/formatters';
 
 interface SummaryCardProps {
@@ -15,7 +15,7 @@ interface SummaryCardProps {
  * separadas por líneas divisorias verticales (estilo Strava).
  */
 export function SummaryCard({ stats }: SummaryCardProps) {
-  const { hours, minutes } = formatDuration(stats.totalMinutesThisMonth);
+  const { hours, minutes } = formatDuration(stats.totalSecondsThisMonth);
 
   return (
     <View style={[styles.card, shadow.card]}>

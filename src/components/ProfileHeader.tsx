@@ -10,7 +10,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ProfileHeaderProps {
   name: string;
-  username?: string;
   bio?: string;
   avatarUrl?: string;
   gender?: Gender;
@@ -33,7 +32,6 @@ const SWIMMER_LABEL: Record<Gender | 'default', string> = {
  */
 export function ProfileHeader({
   name,
-  username,
   bio,
   avatarUrl,
   gender,
@@ -68,7 +66,7 @@ export function ProfileHeader({
 
           <View style={styles.profileInfo}>
             <Text style={styles.name} numberOfLines={1}>
-              {username || name}
+              {name}
             </Text>
             {bio && (
               <Text style={styles.bio} numberOfLines={2}>

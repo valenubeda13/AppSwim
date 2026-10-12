@@ -20,13 +20,13 @@ export function startOfWeekIso(reference: Date = new Date()): string {
   return toIsoDate(date);
 }
 
-export function sumWorkouts(workouts: Workout[]): { totalMeters: number; totalMinutes: number } {
+export function sumWorkouts(workouts: Workout[]): { totalMeters: number; totalSeconds: number } {
   return workouts.reduce(
     (acc, w) => ({
       totalMeters: acc.totalMeters + w.totalMeters,
-      totalMinutes: acc.totalMinutes + w.totalTimeMinutes,
+      totalSeconds: acc.totalSeconds + w.durationSeconds,
     }),
-    { totalMeters: 0, totalMinutes: 0 }
+    { totalMeters: 0, totalSeconds: 0 }
   );
 }
 

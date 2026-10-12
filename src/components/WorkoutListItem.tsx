@@ -11,15 +11,17 @@ interface WorkoutListItemProps {
 }
 
 const INTENSITY_LABEL: Record<Workout['intensity'], string> = {
-  suave: 'Suave',
-  moderada: 'Moderada',
-  alta: 'Alta',
+  low: 'Suave',
+  medium: 'Moderada',
+  high: 'Alta',
+  max: 'Máxima',
 };
 
 const INTENSITY_COLOR: Record<Workout['intensity'], { text: string; background: string }> = {
-  suave: { text: colors.success, background: colors.successLight },
-  moderada: { text: colors.primary, background: colors.primaryLight },
-  alta: { text: colors.error, background: colors.errorLight },
+  low: { text: colors.success, background: colors.successLight },
+  medium: { text: colors.primary, background: colors.primaryLight },
+  high: { text: colors.tertiary, background: colors.tertiaryLight },
+  max: { text: colors.error, background: colors.errorLight },
 };
 
 /**
@@ -47,7 +49,7 @@ export function WorkoutListItem({ workout, onPress }: WorkoutListItemProps) {
         </View>
         <View style={styles.metric}>
           <Timer size={16} color={colors.tertiary} strokeWidth={2.2} />
-          <Text style={styles.metricValue}>{workout.totalTimeMinutes} min</Text>
+          <Text style={styles.metricValue}>{Math.round(workout.durationSeconds / 60)} min</Text>
         </View>
         <Text style={styles.poolLength}>Pileta {workout.poolLength} m</Text>
       </View>

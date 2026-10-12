@@ -6,10 +6,11 @@ export function formatMeters(meters: number): string {
 }
 
 /**
- * Convierte minutos totales a formato "Xh Ymin".
- * Ej: 2790 -> "46 h 30 min"
+ * Separa segundos totales en horas y minutos (para mostrar "X h Y min").
+ * Ej: 167400 -> { hours: 46, minutes: 30 }
  */
-export function formatDuration(totalMinutes: number): { hours: number; minutes: number } {
+export function formatDuration(totalSeconds: number): { hours: number; minutes: number } {
+  const totalMinutes = Math.round(totalSeconds / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return { hours, minutes };

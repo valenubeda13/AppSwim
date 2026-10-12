@@ -13,7 +13,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
-import { EmptyState, WorkoutListItem } from '@/components';
+import { WorkoutListItem } from '@/components';
+import { EmptyState } from '@/components/ui';
 import { Workout } from '@/types';
 import { formatMonthTitle } from '@/utils/formatters';
 import { WorkoutsStackParamList } from '@/navigation/types';

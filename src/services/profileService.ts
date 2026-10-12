@@ -3,11 +3,14 @@ import { ProfileInput, UserProfile } from '@/types';
 import { storage, STORAGE_KEYS } from './storage';
 
 const DEFAULT_PROFILE: UserProfile = {
-  id: 'local',
   name: 'Nadador/a',
-  distanceUnit: 'metros',
-  timeFormat: 'min:seg',
 };
+
+/** Campos con el nombre que tenían antes de alinear el tipo con la card de modelos. */
+interface LegacyProfileFields {
+  goalMetersPerWeek?: number;
+  preferredPoolLength?: UserProfile['usualPool'];
+}
 
 const AVATAR_PREFIX = 'avatar-';
 
@@ -39,7 +42,14 @@ function deleteOwnedAvatar(uri: string): void {
 }
 
 async function readProfile(): Promise<UserProfile> {
-  const profile = (await storage.get<UserProfile>(STORAGE_KEYS.profile)) ?? DEFAULT_PROFILE;
+  const stored: UserProfile & LegacyProfileFields =
+    (await storage.get<UserProfile & LegacyProfileFields>(STORAGE_KEYS.profile)) ?? DEFAULT_PROFILE;
+  const { goalMetersPerWeek, preferredPoolLength, ...rest } = stored;
+  const profile: UserProfile = {
+    ...rest,
+    weeklyGoalMeters: rest.weeklyGoalMeters ?? goalMetersPerWeek,
+    usualPool: rest.usualPool ?? preferredPoolLength,
+  };
   return profile.avatarUrl
     ? { ...profile, avatarUrl: resolveAvatarUri(profile.avatarUrl) }
     : profile;
@@ -51,29 +61,24 @@ export const profileService = {
   },
 
   /**
-   * Update parcial: solo pisa los campos presentes en `input`. Los campos
-   * "core" (name/goalMetersPerWeek/preferredPoolLength) siempre se mandan
-   * porque ya los pedía el formulario de perfil; los demás son opcionales
-   * y, si no vienen, se conservan.
+   * Reemplaza los datos editables con los del formulario. Se arma el objeto
+   * campo por campo (sin `...current`) para que un perfil guardado con
+   * campos viejos (username, preferencias de la cuenta, nombres anteriores)
+   * quede limpio al guardar.
    */
   async update(input: ProfileInput): Promise<UserProfile> {
     const current = await readProfile();
     const updated: UserProfile = {
-      ...current,
+      avatarUrl: current.avatarUrl,
       name: input.name,
-      goalMetersPerWeek: input.goalMetersPerWeek,
-      preferredPoolLength: input.preferredPoolLength,
-      ...(input.username !== undefined && { username: input.username || undefined }),
-      ...(input.bio !== undefined && { bio: input.bio || undefined }),
-      ...(input.gender !== undefined && { gender: input.gender || undefined }),
-      ...(input.swimmingSince !== undefined && { swimmingSince: input.swimmingSince || undefined }),
-      ...(input.distanceUnit !== undefined && { distanceUnit: input.distanceUnit }),
-      ...(input.timeFormat !== undefined && { timeFormat: input.timeFormat }),
-      ...(input.favoriteStyle !== undefined && { favoriteStyle: input.favoriteStyle || undefined }),
+      club: input.club || undefined,
+      birthYear: input.birthYear,
+      usualPool: input.usualPool,
+      weeklyGoalMeters: input.weeklyGoalMeters,
+      bio: input.bio || undefined,
+      gender: input.gender,
+      swimmingSince: input.swimmingSince || undefined,
     };
-    if (input.username !== undefined && input.username !== current.username) {
-      updated.usernameUpdatedAt = new Date().toISOString();
-    }
 
     await storage.set(STORAGE_KEYS.profile, updated);
     return updated;

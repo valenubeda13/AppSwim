@@ -5,7 +5,7 @@ import { computeStreakDays, startOfWeekIso, sumWorkouts } from '@/utils/workoutS
 export interface ProfileStats {
   totalWorkouts: number;
   totalMeters: number;
-  totalMinutes: number;
+  totalSeconds: number;
   streakDays: number;
   currentWeekMeters: number;
 }
@@ -18,7 +18,7 @@ export function useProfileStats() {
   const { workouts, isLoading } = useWorkouts();
 
   const stats = useMemo<ProfileStats>(() => {
-    const { totalMeters, totalMinutes } = sumWorkouts(workouts);
+    const { totalMeters, totalSeconds } = sumWorkouts(workouts);
     const weekStart = startOfWeekIso();
     const currentWeekMeters = workouts
       .filter((w) => w.date >= weekStart)
@@ -27,7 +27,7 @@ export function useProfileStats() {
     return {
       totalWorkouts: workouts.length,
       totalMeters,
-      totalMinutes,
+      totalSeconds,
       streakDays: computeStreakDays(workouts),
       currentWeekMeters,
     };

@@ -16,8 +16,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
-import { SegmentedControl } from '@/components';
-import { Intensity, WorkoutInput } from '@/types';
+import { SegmentedControl } from '@/components/ui';
+import { Intensity, NewWorkout, PoolLength } from '@/types';
 import { toIsoDate } from '@/utils/formatters';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
@@ -25,23 +25,24 @@ type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutForm'>;
 
 interface WorkoutFormValues {
   date: string;
-  poolLength: 25 | 50;
+  poolLength: PoolLength;
   totalMeters: string;
-  totalTimeMinutes: string;
+  durationMinutes: string;
   intensity: Intensity;
   calories: string;
   notes: string;
 }
 
-const POOL_OPTIONS: { value: 25 | 50; label: string }[] = [
+const POOL_OPTIONS: { value: PoolLength; label: string }[] = [
   { value: 25, label: '25 m' },
   { value: 50, label: '50 m' },
 ];
 
 const INTENSITY_OPTIONS: { value: Intensity; label: string }[] = [
-  { value: 'suave', label: 'Suave' },
-  { value: 'moderada', label: 'Moderada' },
-  { value: 'alta', label: 'Alta' },
+  { value: 'low', label: 'Suave' },
+  { value: 'medium', label: 'Moderada' },
+  { value: 'high', label: 'Alta' },
+  { value: 'max', label: 'Máxima' },
 ];
 
 const QUICK_DATES = [
@@ -82,8 +83,8 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       date: toIsoDate(new Date()),
       poolLength: 25,
       totalMeters: '',
-      totalTimeMinutes: '',
-      intensity: 'moderada',
+      durationMinutes: '',
+      intensity: 'medium',
       calories: '',
       notes: '',
     },
@@ -99,7 +100,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       date: existing.date,
       poolLength: existing.poolLength,
       totalMeters: String(existing.totalMeters),
-      totalTimeMinutes: String(existing.totalTimeMinutes),
+      durationMinutes: String(Math.round(existing.durationSeconds / 60)),
       intensity: existing.intensity,
       calories: existing.calories !== undefined ? String(existing.calories) : '',
       notes: existing.notes ?? '',
@@ -125,14 +126,16 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
   const onSubmit = async (values: WorkoutFormValues) => {
     setServerError(null);
 
-    const input: WorkoutInput = {
+    const input: NewWorkout = {
       date: values.date,
       poolLength: values.poolLength,
       totalMeters: Number(values.totalMeters),
-      totalTimeMinutes: Number(values.totalTimeMinutes),
+      // El formulario pide minutos; se guarda en segundos.
+      durationSeconds: Number(values.durationMinutes) * 60,
       intensity: values.intensity,
       calories: values.calories.trim() ? Number(values.calories) : undefined,
       notes: values.notes.trim() ? values.notes.trim() : undefined,
+      sets: existing?.sets ?? [],
     };
 
     try {
@@ -256,7 +259,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
             <Text style={styles.label}>Tiempo (min)</Text>
             <Controller
               control={control}
-              name="totalTimeMinutes"
+              name="durationMinutes"
               rules={{
                 required: 'Requerido',
                 validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
@@ -273,8 +276,8 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
                 />
               )}
             />
-            {errors.totalTimeMinutes && (
-              <Text style={styles.fieldError}>{errors.totalTimeMinutes.message}</Text>
+            {errors.durationMinutes && (
+              <Text style={styles.fieldError}>{errors.durationMinutes.message}</Text>
             )}
           </View>
         </View>
