@@ -1,19 +1,21 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '@/theme';
 
 interface PlaceholderScreenProps {
   title: string;
+  /** Lados con inset de safe area. Default todos; [] si la pantalla tiene header de stack. */
+  edges?: Edge[];
 }
 
 /**
  * Pantalla temporal. Se reemplaza por la pantalla real en el
  * siguiente paso del desarrollo (Entrenamientos, Mis marcas, Perfil).
  */
-export function PlaceholderScreen({ title }: PlaceholderScreenProps) {
+export function PlaceholderScreen({ title, edges }: PlaceholderScreenProps) {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={edges}>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>Próximamente 🚧</Text>
     </SafeAreaView>

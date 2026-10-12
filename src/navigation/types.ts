@@ -36,9 +36,8 @@ export type RootTabParamList = {
 
 // Tipa useNavigation(), Link, etc. en toda la app sin pasar el genérico.
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface RootParamList extends RootTabParamList {}
   }
 }

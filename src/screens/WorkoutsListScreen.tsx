@@ -74,6 +74,8 @@ export function WorkoutsListScreen({ navigation }: Props) {
     <SectionList
       style={styles.root}
       contentContainerStyle={styles.content}
+      // Necesario para que el título grande (headerLargeTitle) colapse al scrollear.
+      contentInsetAdjustmentBehavior="automatic"
       sections={sections}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}

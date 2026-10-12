@@ -2,14 +2,12 @@ import React from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Calendar, Trophy } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { colors, spacing } from '@/theme';
 import { getGreeting } from '@/utils/format';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useProfile } from '@/hooks/useProfile';
 import { HomeHeader, QuickAccessCard, SummaryCard, TipCard, SectionTitle } from '@/components';
-import { RootTabParamList } from '@/navigation/types';
 
 const DAILY_TIP = {
   quote: 'La disciplina de hoy es el éxito de mañana.',
@@ -17,7 +15,7 @@ const DAILY_TIP = {
 };
 
 export function HomeScreen() {
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const navigation = useNavigation();
   const { stats, isLoading } = useWorkoutStats();
   const { profile } = useProfile();
 
@@ -41,7 +39,7 @@ export function HomeScreen() {
                 subtitle="Ver y registrar"
                 backgroundColor={colors.primaryLight}
                 accentColor={colors.primary}
-                onPress={() => navigation.navigate('Entrenamientos')}
+                onPress={() => navigation.navigate('Entrenamientos', { screen: 'WorkoutsList' })}
               />
               <View style={{ width: spacing.md }} />
               <QuickAccessCard
@@ -50,7 +48,7 @@ export function HomeScreen() {
                 subtitle="Ver y mejorar"
                 backgroundColor={colors.successLight}
                 accentColor={colors.success}
-                onPress={() => navigation.navigate('MisMarcas')}
+                onPress={() => navigation.navigate('MisMarcas', { screen: 'RecordsList' })}
               />
             </View>
           </View>

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,7 +12,7 @@ import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 
-import { BottomTabNavigator } from '@/navigation/BottomTabNavigator';
+import { RootNavigator } from '@/navigation/RootNavigator';
 import { ProfileProvider } from '@/context/ProfileProvider';
 import { WorkoutsProvider } from '@/context/WorkoutsProvider';
 
@@ -47,9 +46,7 @@ export default function App() {
       <StatusBar style="auto" />
       <ProfileProvider>
         <WorkoutsProvider>
-          <NavigationContainer>
-            <BottomTabNavigator />
-          </NavigationContainer>
+          <RootNavigator />
         </WorkoutsProvider>
       </ProfileProvider>
     </SafeAreaProvider>
