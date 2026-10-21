@@ -1,4 +1,11 @@
-import { formatDuration, formatDurationParts, formatSwimTime, parseDuration } from '../time';
+import {
+  formatDuration,
+  formatDurationParts,
+  formatMinSec,
+  formatRest,
+  formatSwimTime,
+  parseDuration,
+} from '../time';
 
 describe('formatDuration', () => {
   it('muestra horas con minutos de dos dígitos', () => {
@@ -23,6 +30,22 @@ describe('formatDurationParts', () => {
     expect(formatDurationParts(3600)).toEqual({ value: '1:00', unit: 'h' });
     expect(formatDurationParts(3900)).toEqual({ value: '1:05', unit: 'h' });
     expect(formatDurationParts(0)).toEqual({ value: '0', unit: 'min' });
+  });
+});
+
+describe('formatMinSec', () => {
+  it('formatea m:ss redondeando al segundo', () => {
+    expect(formatMinSec(105)).toBe('1:45');
+    expect(formatMinSec(20)).toBe('0:20');
+    expect(formatMinSec(119.6)).toBe('2:00');
+  });
+});
+
+describe('formatRest', () => {
+  it('usa segundos debajo del minuto y m:ss desde el minuto', () => {
+    expect(formatRest(20)).toBe('20 s');
+    expect(formatRest(60)).toBe('1:00');
+    expect(formatRest(90)).toBe('1:30');
   });
 });
 

@@ -1,5 +1,11 @@
 import { Workout } from '@/types';
-import { computeStreakDays, groupByMonth, sumDuration, sumMeters } from '../stats';
+import {
+  computeStreakDays,
+  groupByMonth,
+  pacePer100Seconds,
+  sumDuration,
+  sumMeters,
+} from '../stats';
 
 function workout(date: string, totalMeters = 1000, durationSeconds = 1800): Workout {
   return {
@@ -72,5 +78,17 @@ describe('computeStreakDays', () => {
   it('cruza el cambio de mes', () => {
     const list = ['2026-10-01', '2026-09-30'].map((d) => workout(d));
     expect(computeStreakDays(list, new Date(2026, 9, 1))).toBe(2);
+  });
+});
+
+describe('pacePer100Seconds', () => {
+  it('calcula segundos cada 100 m', () => {
+    // 2000 m en 35 min -> 105 s (1:45) cada 100 m
+    expect(pacePer100Seconds(35 * 60, 2000)).toBe(105);
+  });
+
+  it('da null sin metros o sin tiempo', () => {
+    expect(pacePer100Seconds(1800, 0)).toBeNull();
+    expect(pacePer100Seconds(0, 1000)).toBeNull();
   });
 });

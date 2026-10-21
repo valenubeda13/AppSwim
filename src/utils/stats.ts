@@ -13,6 +13,16 @@ export function sumDuration(workouts: Workout[]): number {
   return workouts.reduce((sum, w) => sum + w.durationSeconds, 0);
 }
 
+/**
+ * Ritmo promedio cada 100 m, en segundos. Es un dato derivado: no se guarda,
+ * así si se editan los metros o el tiempo se recalcula solo.
+ * null si no hay metros o tiempo (no se puede dividir).
+ */
+export function pacePer100Seconds(durationSeconds: number, totalMeters: number): number | null {
+  if (totalMeters <= 0 || durationSeconds <= 0) return null;
+  return (durationSeconds / totalMeters) * 100;
+}
+
 export interface MonthGroup {
   /** "YYYY-MM" */
   month: string;

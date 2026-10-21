@@ -11,6 +11,8 @@ export interface WorkoutsContextValue {
   addWorkout: (input: NewWorkout) => Promise<Workout>;
   updateWorkout: (id: string, changes: Partial<NewWorkout>) => Promise<Workout>;
   deleteWorkout: (id: string) => Promise<void>;
+  /** Deshace un borrado: vuelve a guardar el entreno tal cual era. */
+  restoreWorkout: (workout: Workout) => Promise<void>;
 }
 
 export const WorkoutsContext = createContext<WorkoutsContextValue | null>(null);
@@ -78,9 +80,26 @@ export function WorkoutsProvider({ children }: { children: ReactNode }) {
     [refresh]
   );
 
+  const restoreWorkout = useCallback(
+    async (workout: Workout) => {
+      await workoutRepository.restore(workout);
+      await refresh();
+    },
+    [refresh]
+  );
+
   const value = useMemo(
-    () => ({ workouts, isLoading, error, reload, addWorkout, updateWorkout, deleteWorkout }),
-    [workouts, isLoading, error, reload, addWorkout, updateWorkout, deleteWorkout]
+    () => ({
+      workouts,
+      isLoading,
+      error,
+      reload,
+      addWorkout,
+      updateWorkout,
+      deleteWorkout,
+      restoreWorkout,
+    }),
+    [workouts, isLoading, error, reload, addWorkout, updateWorkout, deleteWorkout, restoreWorkout]
   );
 
   return <WorkoutsContext.Provider value={value}>{children}</WorkoutsContext.Provider>;

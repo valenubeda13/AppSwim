@@ -83,6 +83,11 @@ export interface WorkoutRepository {
   /** Pisa solo los campos presentes en `changes` y actualiza updatedAt. */
   update(id: string, changes: Partial<NewWorkout>): Promise<Workout>;
   remove(id: string): Promise<void>;
+  /**
+   * Vuelve a guardar un entreno recién borrado tal cual (mismo id y fechas),
+   * para el "Deshacer". Si ese id ya existe no hace nada.
+   */
+  restore(workout: Workout): Promise<void>;
 }
 
 /** Serializa las escrituras de esta clave (ver createWriteQueue). */
@@ -134,6 +139,14 @@ export const localWorkoutRepository: WorkoutRepository = {
         STORAGE_KEYS.workouts,
         all.filter((w) => w.id !== id)
       );
+    });
+  },
+
+  restore(workout) {
+    return enqueue(async () => {
+      const all = await readAll();
+      if (all.some((w) => w.id === workout.id)) return;
+      await setItem(STORAGE_KEYS.workouts, [workout, ...all]);
     });
   },
 };

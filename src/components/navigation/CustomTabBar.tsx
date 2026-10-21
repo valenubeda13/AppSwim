@@ -21,6 +21,16 @@ const LABEL_FONT_SIZE = 11;
 const LABEL_LINE_HEIGHT = 14;
 const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
 
+/** Espacio inferior de la barra: el inset del dispositivo, con un mínimo. */
+const bottomSpaceFor = (insetBottom: number) => Math.max(insetBottom, spacing.sm);
+
+/**
+ * Alto total de la tab bar para un inset inferior dado. Lo usan los
+ * elementos que flotan sobre ella (ej. el toast) sin tener que medirla.
+ */
+export const tabBarHeightFor = (insetBottom: number) =>
+  TAB_BAR_CONTENT_HEIGHT + bottomSpaceFor(insetBottom);
+
 /**
  * Tab bar propia (reemplaza la default de React Navigation).
  * - Fondo blanco (colors.surface) con borde superior hairline, sin sombra.
@@ -31,7 +41,7 @@ const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
  */
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const bottomSpace = Math.max(insets.bottom, spacing.sm);
+  const bottomSpace = bottomSpaceFor(insets.bottom);
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
   const [tabWidth, setTabWidth] = useState(0);
   const indicatorX = useSharedValue(0);

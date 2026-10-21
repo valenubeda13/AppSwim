@@ -3,16 +3,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { WorkoutsListScreen } from '@/screens/WorkoutsListScreen';
 import { WorkoutFormScreen } from '@/screens/WorkoutFormScreen';
-import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
+import { WorkoutDetailScreen } from '@/screens/WorkoutDetailScreen';
 import { formModalOptions, rootScreenOptions, stackScreenOptions } from './stackOptions';
 import { WorkoutsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<WorkoutsStackParamList>();
-
-// Temporal hasta la card 5.4 (detalle de entrenamiento).
-function WorkoutDetailPlaceholder() {
-  return <PlaceholderScreen title="Detalle" edges={[]} />;
-}
 
 /**
  * Stack del tab "Entrenamientos": listado -> detalle -> formulario (modal).
@@ -30,7 +25,7 @@ export function WorkoutsStack() {
       />
       <Stack.Screen
         name="WorkoutDetail"
-        component={WorkoutDetailPlaceholder}
+        component={WorkoutDetailScreen}
         options={{ title: 'Entrenamiento' }}
       />
       <Stack.Screen

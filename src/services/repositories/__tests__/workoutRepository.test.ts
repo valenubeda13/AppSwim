@@ -43,3 +43,22 @@ describe('workoutRepository: escrituras simultáneas', () => {
     expect(all.find((w) => w.id === existing.id)?.totalMeters).toBe(9999);
   });
 });
+
+describe('workoutRepository: restore (deshacer borrado)', () => {
+  it('vuelve a guardar el entreno borrado con el mismo id y fechas', async () => {
+    const created = await workoutRepository.create(input(1234));
+    await workoutRepository.remove(created.id);
+    expect(await workoutRepository.getById(created.id)).toBeNull();
+
+    await workoutRepository.restore(created);
+    expect(await workoutRepository.getById(created.id)).toEqual(created);
+  });
+
+  it('no duplica si el entreno ya existe', async () => {
+    const created = await workoutRepository.create(input(4321));
+    await workoutRepository.restore(created);
+
+    const all = await workoutRepository.getAll();
+    expect(all.filter((w) => w.id === created.id)).toHaveLength(1);
+  });
+});

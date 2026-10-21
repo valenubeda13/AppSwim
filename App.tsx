@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 // Imports por subpath (no desde la raíz del paquete): la raíz reexporta
@@ -17,6 +18,7 @@ import '@/config/calendarLocale';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { ProfileProvider } from '@/context/ProfileProvider';
 import { WorkoutsProvider } from '@/context/WorkoutsProvider';
+import { ToastProvider } from '@/context/ToastProvider';
 
 // Se llama en scope global (no adentro de App) para que el splash nativo
 // quede visible hasta que las fuentes terminen de cargar.
@@ -44,13 +46,18 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <ProfileProvider>
-        <WorkoutsProvider>
-          <RootNavigator />
-        </WorkoutsProvider>
-      </ProfileProvider>
-    </SafeAreaProvider>
+    // GestureHandlerRootView: necesario para los gestos (swipe para borrar).
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <ToastProvider>
+          <ProfileProvider>
+            <WorkoutsProvider>
+              <RootNavigator />
+            </WorkoutsProvider>
+          </ProfileProvider>
+        </ToastProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

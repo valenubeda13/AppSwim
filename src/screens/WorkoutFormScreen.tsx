@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,14 +10,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
+import { useDeleteWorkout } from '@/hooks/useDeleteWorkout';
 import { SegmentedControl } from '@/components/ui';
+import { SetsEditor } from '@/components/SetsEditor';
 import { Intensity, NewWorkout, PoolLength } from '@/types';
 import { isISODate, toISODate } from '@/utils/date';
+import { fromSetFormValues, SetFormValues, toSetFormValues } from '@/utils/sets';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutForm'>;
@@ -31,6 +33,7 @@ interface WorkoutFormValues {
   intensity: Intensity;
   calories: string;
   notes: string;
+  sets: SetFormValues[];
 }
 
 const POOL_OPTIONS: { value: PoolLength; label: string }[] = [
@@ -66,18 +69,13 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
   // `date` llega al abrir el alta desde un día del calendario (FAB o "Registrar").
   const { workoutId, date: initialDate } = route.params;
   const isEditing = Boolean(workoutId);
-  const { workouts, isLoading, addWorkout, updateWorkout, deleteWorkout } = useWorkouts();
+  const { workouts, isLoading, addWorkout, updateWorkout } = useWorkouts();
+  const deleteWithUndo = useDeleteWorkout();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const existing = workoutId ? workouts.find((w) => w.id === workoutId) : undefined;
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<WorkoutFormValues>({
+  const form = useForm<WorkoutFormValues>({
     defaultValues: {
       date: initialDate && isISODate(initialDate) ? initialDate : toISODate(new Date()),
       poolLength: 25,
@@ -86,8 +84,16 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       intensity: 'medium',
       calories: '',
       notes: '',
+      sets: [],
     },
   });
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = form;
 
   useEffect(() => {
     navigation.setOptions({ title: isEditing ? 'Editar entrenamiento' : 'Nuevo entrenamiento' });
@@ -103,6 +109,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       intensity: existing.intensity,
       calories: existing.calories !== undefined ? String(existing.calories) : '',
       notes: existing.notes ?? '',
+      sets: existing.sets.map(toSetFormValues),
     });
   }, [existing, reset]);
 
@@ -134,7 +141,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       intensity: values.intensity,
       calories: values.calories.trim() ? Number(values.calories) : undefined,
       notes: values.notes.trim() ? values.notes.trim() : undefined,
-      sets: existing?.sets ?? [],
+      sets: values.sets.map(fromSetFormValues),
     };
 
     try {
@@ -150,214 +157,215 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
   };
 
   const handleDelete = () => {
-    if (!workoutId) return;
-    Alert.alert('Eliminar entrenamiento', 'Esta acción no se puede deshacer. ¿Querés eliminarlo?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteWorkout(workoutId);
-            navigation.goBack();
-          } catch (err) {
-            setServerError(
-              err instanceof Error ? err.message : 'No se pudo eliminar el entrenamiento.'
-            );
-          }
-        },
-      },
-    ]);
+    if (!existing) return;
+    // Mismo borrado con "Deshacer" que el resto de la app (sin confirmación).
+    void deleteWithUndo(existing);
+    navigation.goBack();
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-        <View style={styles.field}>
-          <Text style={styles.label}>Fecha</Text>
-          <Controller
-            control={control}
-            name="date"
-            rules={{
-              required: 'La fecha es obligatoria',
-              validate: (value) => isISODate(value) || 'Fecha inválida (formato AAAA-MM-DD)',
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                placeholder="AAAA-MM-DD"
-                placeholderTextColor={colors.textTertiary}
-                autoCapitalize="none"
-                autoCorrect={false}
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-              />
-            )}
-          />
-          {errors.date && <Text style={styles.fieldError}>{errors.date.message}</Text>}
-
-          <View style={styles.quickDatesRow}>
-            {QUICK_DATES.map((quick) => (
-              <TouchableOpacity
-                key={quick.label}
-                style={styles.quickDateChip}
-                activeOpacity={0.8}
-                onPress={() => setValue('date', quickDateIso(quick.offset))}
-              >
-                <Text style={styles.quickDateLabel}>{quick.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Pileta</Text>
-          <Controller
-            control={control}
-            name="poolLength"
-            render={({ field: { onChange, value } }) => (
-              <SegmentedControl options={POOL_OPTIONS} value={value} onChange={onChange} />
-            )}
-          />
-        </View>
-
-        <View style={styles.row}>
-          <View style={[styles.field, styles.flexField]}>
-            <Text style={styles.label}>Metros totales</Text>
-            <Controller
-              control={control}
-              name="totalMeters"
-              rules={{
-                required: 'Requerido',
-                validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="3000"
-                  placeholderTextColor={colors.textTertiary}
-                  keyboardType="number-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-            {errors.totalMeters && (
-              <Text style={styles.fieldError}>{errors.totalMeters.message}</Text>
-            )}
-          </View>
-
-          <View style={{ width: spacing.md }} />
-
-          <View style={[styles.field, styles.flexField]}>
-            <Text style={styles.label}>Tiempo (min)</Text>
-            <Controller
-              control={control}
-              name="durationMinutes"
-              rules={{
-                required: 'Requerido',
-                validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="60"
-                  placeholderTextColor={colors.textTertiary}
-                  keyboardType="number-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-            {errors.durationMinutes && (
-              <Text style={styles.fieldError}>{errors.durationMinutes.message}</Text>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Intensidad</Text>
-          <Controller
-            control={control}
-            name="intensity"
-            render={({ field: { onChange, value } }) => (
-              <SegmentedControl options={INTENSITY_OPTIONS} value={value} onChange={onChange} />
-            )}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Calorías (opcional)</Text>
-          <Controller
-            control={control}
-            name="calories"
-            rules={{
-              validate: (value) => !value.trim() || /^\d+$/.test(value) || 'Ingresá un número',
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                placeholder="450"
-                placeholderTextColor={colors.textTertiary}
-                keyboardType="number-pad"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-              />
-            )}
-          />
-          {errors.calories && <Text style={styles.fieldError}>{errors.calories.message}</Text>}
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Notas (opcional)</Text>
-          <Controller
-            control={control}
-            name="notes"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[styles.input, styles.notesInput]}
-                placeholder="Cómo te sentiste, qué trabajaste..."
-                placeholderTextColor={colors.textTertiary}
-                multiline
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-              />
-            )}
-          />
-        </View>
-
-        {serverError && <Text style={styles.serverError}>{serverError}</Text>}
-
-        <TouchableOpacity
-          style={styles.submitButton}
-          activeOpacity={0.85}
-          onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
+    <FormProvider {...form}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          style={styles.root}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
         >
-          {isSubmitting ? (
-            <ActivityIndicator color={colors.surface} />
-          ) : (
-            <Text style={styles.submitLabel}>
-              {isEditing ? 'Guardar cambios' : 'Agregar entrenamiento'}
-            </Text>
-          )}
-        </TouchableOpacity>
+          <View style={styles.field}>
+            <Text style={styles.label}>Fecha</Text>
+            <Controller
+              control={control}
+              name="date"
+              rules={{
+                required: 'La fecha es obligatoria',
+                validate: (value) => isISODate(value) || 'Fecha inválida (formato AAAA-MM-DD)',
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="AAAA-MM-DD"
+                  placeholderTextColor={colors.textTertiary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+            {errors.date && <Text style={styles.fieldError}>{errors.date.message}</Text>}
 
-        {isEditing && (
-          <TouchableOpacity style={styles.deleteButton} activeOpacity={0.8} onPress={handleDelete}>
-            <Text style={styles.deleteLabel}>Eliminar entrenamiento</Text>
+            <View style={styles.quickDatesRow}>
+              {QUICK_DATES.map((quick) => (
+                <TouchableOpacity
+                  key={quick.label}
+                  style={styles.quickDateChip}
+                  activeOpacity={0.8}
+                  onPress={() => setValue('date', quickDateIso(quick.offset))}
+                >
+                  <Text style={styles.quickDateLabel}>{quick.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Pileta</Text>
+            <Controller
+              control={control}
+              name="poolLength"
+              render={({ field: { onChange, value } }) => (
+                <SegmentedControl options={POOL_OPTIONS} value={value} onChange={onChange} />
+              )}
+            />
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.field, styles.flexField]}>
+              <Text style={styles.label}>Metros totales</Text>
+              <Controller
+                control={control}
+                name="totalMeters"
+                rules={{
+                  required: 'Requerido',
+                  validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="3000"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="number-pad"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                  />
+                )}
+              />
+              {errors.totalMeters && (
+                <Text style={styles.fieldError}>{errors.totalMeters.message}</Text>
+              )}
+            </View>
+
+            <View style={{ width: spacing.md }} />
+
+            <View style={[styles.field, styles.flexField]}>
+              <Text style={styles.label}>Tiempo (min)</Text>
+              <Controller
+                control={control}
+                name="durationMinutes"
+                rules={{
+                  required: 'Requerido',
+                  validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="60"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="number-pad"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                  />
+                )}
+              />
+              {errors.durationMinutes && (
+                <Text style={styles.fieldError}>{errors.durationMinutes.message}</Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Intensidad</Text>
+            <Controller
+              control={control}
+              name="intensity"
+              render={({ field: { onChange, value } }) => (
+                <SegmentedControl options={INTENSITY_OPTIONS} value={value} onChange={onChange} />
+              )}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Calorías (opcional)</Text>
+            <Controller
+              control={control}
+              name="calories"
+              rules={{
+                validate: (value) => !value.trim() || /^\d+$/.test(value) || 'Ingresá un número',
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="450"
+                  placeholderTextColor={colors.textTertiary}
+                  keyboardType="number-pad"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+            {errors.calories && <Text style={styles.fieldError}>{errors.calories.message}</Text>}
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Notas (opcional)</Text>
+            <Controller
+              control={control}
+              name="notes"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, styles.notesInput]}
+                  placeholder="Cómo te sentiste, qué trabajaste..."
+                  placeholderTextColor={colors.textTertiary}
+                  multiline
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Series (opcional)</Text>
+            <SetsEditor />
+          </View>
+
+          {serverError && <Text style={styles.serverError}>{serverError}</Text>}
+
+          <TouchableOpacity
+            style={styles.submitButton}
+            activeOpacity={0.85}
+            onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color={colors.surface} />
+            ) : (
+              <Text style={styles.submitLabel}>
+                {isEditing ? 'Guardar cambios' : 'Agregar entrenamiento'}
+              </Text>
+            )}
           </TouchableOpacity>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          {isEditing && (
+            <TouchableOpacity
+              style={styles.deleteButton}
+              activeOpacity={0.8}
+              onPress={handleDelete}
+            >
+              <Text style={styles.deleteLabel}>Eliminar entrenamiento</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </FormProvider>
   );
 }
 

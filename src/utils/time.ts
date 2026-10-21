@@ -31,6 +31,20 @@ export function formatDurationParts(seconds: number): { value: string; unit: str
 }
 
 /**
+ * Ritmo o descanso corto en "m:ss": 105 -> "1:45", 20 -> "0:20".
+ * Redondea al segundo.
+ */
+export function formatMinSec(seconds: number): string {
+  const total = Math.round(seconds);
+  return `${Math.floor(total / 60)}:${pad2(total % 60)}`;
+}
+
+/** Descanso entre repeticiones: 20 -> "20 s", 90 -> "1:30". */
+export function formatRest(seconds: number): string {
+  return seconds < 60 ? `${Math.round(seconds)} s` : formatMinSec(seconds);
+}
+
+/**
  * Tiempo de una marca, con centésimas: 62450 -> "1:02.45", 28300 -> "28.30".
  * Redondea a la centésima.
  */

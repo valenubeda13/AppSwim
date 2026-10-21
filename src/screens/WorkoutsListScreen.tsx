@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -21,6 +21,8 @@ import { useWorkouts } from '@/hooks/useWorkouts';
 import { useMarkedDates } from '@/hooks/useMarkedDates';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useWorkoutsByDate } from '@/hooks/useWorkoutsByDate';
+import { useDeleteWorkout } from '@/hooks/useDeleteWorkout';
+import { useToast } from '@/hooks/useToast';
 import { DayWorkoutsList, WorkoutCalendar } from '@/components';
 import { FloatingActionButton } from '@/components/ui';
 import { toISODate } from '@/utils/date';
@@ -31,6 +33,8 @@ type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutsList'>;
 const FAB_SIZE = 56;
 /** Cuántos px hay que mover el scroll en una dirección para esconder/mostrar el FAB. */
 const SCROLL_THRESHOLD = 8;
+/** Cuánto sube el FAB para dejar lugar al toast (alto del toast + margen). */
+const TOAST_CLEARANCE = 64;
 
 /**
  * Tab Entrenamientos: calendario del mes + entrenamientos del día elegido.
@@ -38,11 +42,18 @@ const SCROLL_THRESHOLD = 8;
  * WorkoutCalendar y DayWorkoutsList.
  */
 export function WorkoutsListScreen({ navigation }: Props) {
-  const { isLoading, error, reload } = useWorkouts();
+  const { workouts, isLoading, error, reload } = useWorkouts();
   const markedDates = useMarkedDates();
   const { stats } = useWorkoutStats();
   const [selectedDate, setSelectedDate] = useState(() => toISODate(new Date()));
   const dayWorkouts = useWorkoutsByDate(selectedDate);
+  const deleteWithUndo = useDeleteWorkout();
+  // El toast de "Deshacer" ocupa el mismo lugar que el FAB: mientras se ve, el FAB se corre.
+  const { isToastVisible } = useToast();
+  const fabLifted = useSharedValue(false);
+  useEffect(() => {
+    fabLifted.value = isToastVisible;
+  }, [isToastVisible, fabLifted]);
 
   // FAB: se esconde al scrollear hacia abajo y vuelve al scrollear hacia arriba.
   const fabHidden = useSharedValue(false);
@@ -58,7 +69,12 @@ export function WorkoutsListScreen({ navigation }: Props) {
   const fabStyle = useAnimatedStyle(() => ({
     opacity: withTiming(fabHidden.value ? 0 : 1, { duration: 180 }),
     transform: [
-      { translateY: withTiming(fabHidden.value ? FAB_SIZE : 0, { duration: 220 }) },
+      {
+        translateY: withTiming(
+          fabHidden.value ? FAB_SIZE : fabLifted.value ? -TOAST_CLEARANCE : 0,
+          { duration: 220 }
+        ),
+      },
       { scale: withTiming(fabHidden.value ? 0.6 : 1, { duration: 220 }) },
     ],
   }));
@@ -70,7 +86,9 @@ export function WorkoutsListScreen({ navigation }: Props) {
 
   const openNewWorkout = (date: string) => navigation.navigate('WorkoutForm', { date });
 
-  if (isLoading) {
+  // Spinner de pantalla completa solo en la primera carga: al recargar
+  // (pull-to-refresh) el calendario y la lista se quedan donde estaban.
+  if (isLoading && workouts.length === 0) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.primary} />
@@ -97,7 +115,7 @@ export function WorkoutsListScreen({ navigation }: Props) {
         // Necesario para que el título grande (headerLargeTitle) colapse al scrollear.
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={reload} />}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={reload} />}
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
@@ -114,6 +132,7 @@ export function WorkoutsListScreen({ navigation }: Props) {
             workouts={dayWorkouts}
             onPressWorkout={(workoutId) => navigation.navigate('WorkoutDetail', { workoutId })}
             onAddWorkout={openNewWorkout}
+            onDeleteWorkout={deleteWithUndo}
           />
         </View>
       </Animated.ScrollView>
