@@ -26,8 +26,7 @@ const STAGGER_MS = 80;
 const ENTER_DURATION_MS = 400;
 
 /** Entrada de la sección n-ésima: aparece subiendo, un poco después que la anterior. */
-const enterAt = (index: number) =>
-  FadeInDown.delay(index * STAGGER_MS).duration(ENTER_DURATION_MS);
+const enterAt = (index: number) => FadeInDown.delay(index * STAGGER_MS).duration(ENTER_DURATION_MS);
 
 export function HomeScreen() {
   const navigation = useNavigation();

@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Flame } from 'lucide-react-native';
 import { colors, radius, spacing, typography } from '@/theme';
+import { formatStreakDays, getStreakMessage } from '@/utils/streak';
 
 interface StreakBadgeProps {
   days: number;
@@ -20,8 +21,8 @@ export function StreakBadge({ days }: StreakBadgeProps) {
 
       <View style={styles.textWrapper}>
         <Text style={styles.label}>Racha actual</Text>
-        <Text style={styles.value}>{days} días</Text>
-        <Text style={styles.subtitle}>¡Seguís imparables!</Text>
+        <Text style={styles.value}>{formatStreakDays(days)}</Text>
+        <Text style={styles.subtitle}>{getStreakMessage(days)}</Text>
       </View>
     </View>
   );
