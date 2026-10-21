@@ -12,6 +12,8 @@ import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 
+// Registra el español de react-native-calendars antes de montar cualquier calendario.
+import '@/config/calendarLocale';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { ProfileProvider } from '@/context/ProfileProvider';
 import { WorkoutsProvider } from '@/context/WorkoutsProvider';

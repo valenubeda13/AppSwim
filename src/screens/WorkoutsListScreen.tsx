@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   SectionList,
@@ -12,10 +12,12 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
-import { WorkoutListItem } from '@/components';
+import { useMarkedDates } from '@/hooks/useMarkedDates';
+import { useWorkoutStats } from '@/hooks/useWorkoutStats';
+import { WorkoutCalendar, WorkoutListItem } from '@/components';
 import { EmptyState } from '@/components/ui';
 import { Workout } from '@/types';
-import { formatMonthTitle } from '@/utils/date';
+import { formatMonthTitle, toISODate } from '@/utils/date';
 import { groupByMonth } from '@/utils/stats';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
@@ -36,6 +38,10 @@ function toSections(workouts: Workout[]): WorkoutSection[] {
 export function WorkoutsListScreen({ navigation }: Props) {
   const { workouts, isLoading, error, reload } = useWorkouts();
   const sections = useMemo(() => toSections(workouts), [workouts]);
+  const markedDates = useMarkedDates();
+  const { stats } = useWorkoutStats();
+  // Arranca en hoy. La lista filtrada por este día llega con la card 5.2.
+  const [selectedDate, setSelectedDate] = useState(() => toISODate(new Date()));
 
   if (isLoading) {
     return (
@@ -56,20 +62,6 @@ export function WorkoutsListScreen({ navigation }: Props) {
     );
   }
 
-  if (workouts.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <EmptyState
-          icon={Waves}
-          title="Todavía no cargaste entrenamientos"
-          description="Registrá tu primera sesión para empezar a ver tu progreso."
-          ctaLabel="Agregar entrenamiento"
-          onPressCta={() => navigation.navigate('WorkoutForm', {})}
-        />
-      </View>
-    );
-  }
-
   return (
     <SectionList
       style={styles.root}
@@ -79,6 +71,26 @@ export function WorkoutsListScreen({ navigation }: Props) {
       sections={sections}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
+      // El calendario se muestra siempre, aunque todavía no haya entrenos.
+      ListHeaderComponent={
+        <WorkoutCalendar
+          markedDates={markedDates}
+          selectedDate={selectedDate}
+          onDayPress={setSelectedDate}
+          monthTotals={stats.byMonth}
+        />
+      }
+      ListEmptyComponent={
+        <EmptyState
+          icon={Waves}
+          title="Todavía no cargaste entrenamientos"
+          description="Registrá tu primera sesión para empezar a ver tu progreso."
+          ctaLabel="Agregar entrenamiento"
+          onPressCta={() => navigation.navigate('WorkoutForm', {})}
+        />
+      }
+      // Sticky headers taparían el calendario al scrollear.
+      stickySectionHeadersEnabled={false}
       renderSectionHeader={({ section }) => (
         <Text style={styles.sectionTitle}>{section.title}</Text>
       )}

@@ -7,6 +7,7 @@ export * from './StatsSummary';
 export * from './MotivationCard';
 export * from './SectionTitle';
 export * from './WorkoutListItem';
+export * from './WorkoutCalendar';
 export * from './AvatarPicker';
 export * from './CircularProgress';
 export * from './SectionCard';
