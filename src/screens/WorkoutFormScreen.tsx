@@ -63,7 +63,8 @@ function quickDateIso(offsetDays: number): string {
  * según si `route.params.workoutId` viene definido).
  */
 export function WorkoutFormScreen({ navigation, route }: Props) {
-  const { workoutId } = route.params;
+  // `date` llega al abrir el alta desde un día del calendario (FAB o "Registrar").
+  const { workoutId, date: initialDate } = route.params;
   const isEditing = Boolean(workoutId);
   const { workouts, isLoading, addWorkout, updateWorkout, deleteWorkout } = useWorkouts();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<WorkoutFormValues>({
     defaultValues: {
-      date: toISODate(new Date()),
+      date: initialDate && isISODate(initialDate) ? initialDate : toISODate(new Date()),
       poolLength: 25,
       totalMeters: '',
       durationMinutes: '',

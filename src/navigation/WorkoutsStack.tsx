@@ -1,9 +1,6 @@
 import React from 'react';
-import { Pressable } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Plus } from 'lucide-react-native';
 
-import { colors, spacing } from '@/theme';
 import { WorkoutsListScreen } from '@/screens/WorkoutsListScreen';
 import { WorkoutFormScreen } from '@/screens/WorkoutFormScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
@@ -11,8 +8,6 @@ import { formModalOptions, rootScreenOptions, stackScreenOptions } from './stack
 import { WorkoutsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<WorkoutsStackParamList>();
-
-const HEADER_ICON_SIZE = 24;
 
 // Temporal hasta la card 5.4 (detalle de entrenamiento).
 function WorkoutDetailPlaceholder() {
@@ -30,19 +25,8 @@ export function WorkoutsStack() {
       <Stack.Screen
         name="WorkoutsList"
         component={WorkoutsListScreen}
-        options={({ navigation }) => ({
-          ...rootScreenOptions,
-          title: 'Entrenamientos',
-          headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('WorkoutForm', {})}
-              hitSlop={spacing.sm}
-              accessibilityLabel="Nuevo entrenamiento"
-            >
-              <Plus size={HEADER_ICON_SIZE} color={colors.primary} />
-            </Pressable>
-          ),
-        })}
+        // El alta se hace con el FAB de la pantalla (con la fecha elegida), no desde el header.
+        options={{ ...rootScreenOptions, title: 'Entrenamientos' }}
       />
       <Stack.Screen
         name="WorkoutDetail"

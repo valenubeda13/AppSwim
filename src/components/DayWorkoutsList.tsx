@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
-import { colors, radius, spacing, typography } from '@/theme';
-import { Button } from './ui';
+import { Waves } from 'lucide-react-native';
+import { colors, spacing, typography } from '@/theme';
+import { EmptyState } from './ui';
 import { WorkoutCard } from './WorkoutCard';
 import { Workout } from '@/types';
 import { formatLongDate } from '@/utils/date';
@@ -36,14 +37,13 @@ export function DayWorkoutsList({
       <Text style={styles.title}>{capitalize(formatLongDate(date))}</Text>
 
       {workouts.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No hay entrenamientos este día.</Text>
-          <Button
-            label="Agregar entrenamiento"
-            variant="secondary"
-            onPress={() => onAddWorkout(date)}
-          />
-        </View>
+        <EmptyState
+          icon={Waves}
+          title="Sin entrenamientos este día"
+          description="Elegí otro día en el calendario o registrá uno nuevo."
+          ctaLabel="Registrar entrenamiento"
+          onPressCta={() => onAddWorkout(date)}
+        />
       ) : (
         <View style={styles.list}>
           {workouts.map((workout, index) => (
@@ -68,19 +68,5 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: spacing.md,
-  },
-  empty: {
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.border,
-  },
-  emptyText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
 });

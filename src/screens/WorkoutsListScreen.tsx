@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Animated, {
+  useAnimatedProps,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { colors, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
@@ -16,10 +22,15 @@ import { useMarkedDates } from '@/hooks/useMarkedDates';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useWorkoutsByDate } from '@/hooks/useWorkoutsByDate';
 import { DayWorkoutsList, WorkoutCalendar } from '@/components';
+import { FloatingActionButton } from '@/components/ui';
 import { toISODate } from '@/utils/date';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutsList'>;
+
+const FAB_SIZE = 56;
+/** Cuántos px hay que mover el scroll en una dirección para esconder/mostrar el FAB. */
+const SCROLL_THRESHOLD = 8;
 
 /**
  * Tab Entrenamientos: calendario del mes + entrenamientos del día elegido.
@@ -32,6 +43,32 @@ export function WorkoutsListScreen({ navigation }: Props) {
   const { stats } = useWorkoutStats();
   const [selectedDate, setSelectedDate] = useState(() => toISODate(new Date()));
   const dayWorkouts = useWorkoutsByDate(selectedDate);
+
+  // FAB: se esconde al scrollear hacia abajo y vuelve al scrollear hacia arriba.
+  const fabHidden = useSharedValue(false);
+  const lastScrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    const y = event.contentOffset.y;
+    const delta = y - lastScrollY.value;
+    if (Math.abs(delta) < SCROLL_THRESHOLD) return;
+    // Arriba de todo (o en el rebote de iOS) siempre visible.
+    fabHidden.value = y > 0 && delta > 0;
+    lastScrollY.value = y;
+  });
+  const fabStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(fabHidden.value ? 0 : 1, { duration: 180 }),
+    transform: [
+      { translateY: withTiming(fabHidden.value ? FAB_SIZE : 0, { duration: 220 }) },
+      { scale: withTiming(fabHidden.value ? 0.6 : 1, { duration: 220 }) },
+    ],
+  }));
+
+  // Escondido no tiene que recibir toques (si no, un tap "invisible" abre el form).
+  const fabProps = useAnimatedProps(() => ({
+    pointerEvents: fabHidden.value ? ('none' as const) : ('auto' as const),
+  }));
+
+  const openNewWorkout = (date: string) => navigation.navigate('WorkoutForm', { date });
 
   if (isLoading) {
     return (
@@ -53,30 +90,44 @@ export function WorkoutsListScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView
-      style={styles.root}
-      contentContainerStyle={styles.content}
-      // Necesario para que el título grande (headerLargeTitle) colapse al scrollear.
-      contentInsetAdjustmentBehavior="automatic"
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={reload} />}
-    >
-      <WorkoutCalendar
-        markedDates={markedDates}
-        selectedDate={selectedDate}
-        onDayPress={setSelectedDate}
-        monthTotals={stats.byMonth}
-      />
-
-      <View style={styles.day}>
-        <DayWorkoutsList
-          date={selectedDate}
-          workouts={dayWorkouts}
-          onPressWorkout={(workoutId) => navigation.navigate('WorkoutDetail', { workoutId })}
-          onAddWorkout={(date) => navigation.navigate('WorkoutForm', { date })}
+    <View style={styles.root}>
+      <Animated.ScrollView
+        style={styles.root}
+        contentContainerStyle={styles.content}
+        // Necesario para que el título grande (headerLargeTitle) colapse al scrollear.
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={reload} />}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
+        <WorkoutCalendar
+          markedDates={markedDates}
+          selectedDate={selectedDate}
+          onDayPress={setSelectedDate}
+          monthTotals={stats.byMonth}
         />
-      </View>
-    </ScrollView>
+
+        <View style={styles.day}>
+          <DayWorkoutsList
+            date={selectedDate}
+            workouts={dayWorkouts}
+            onPressWorkout={(workoutId) => navigation.navigate('WorkoutDetail', { workoutId })}
+            onAddWorkout={openNewWorkout}
+          />
+        </View>
+      </Animated.ScrollView>
+
+      {/* La tab bar no es flotante: la pantalla ya termina arriba de ella (y de
+          insets.bottom), así que alcanza con un margen fijo. */}
+      <Animated.View style={[styles.fab, fabStyle]} animatedProps={fabProps}>
+        <FloatingActionButton
+          size={FAB_SIZE}
+          onPress={() => openNewWorkout(selectedDate)}
+          accessibilityLabel="Registrar entrenamiento"
+        />
+      </Animated.View>
+    </View>
   );
 }
 
@@ -87,7 +138,13 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    // Espacio extra para que el FAB no tape la última card.
+    paddingBottom: spacing.xxl + FAB_SIZE,
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
   },
   day: {
     marginTop: spacing.xl,

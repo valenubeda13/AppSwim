@@ -10,6 +10,7 @@ interface FloatingActionButtonProps {
   icon?: LucideIcon;
   /** Diámetro del círculo. Default 56. */
   size?: number;
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -24,6 +25,7 @@ export function FloatingActionButton({
   onPress,
   icon: Icon = Plus,
   size = 56,
+  accessibilityLabel,
   style,
 }: FloatingActionButtonProps) {
   const [scale] = useState(() => new Animated.Value(1));
@@ -42,6 +44,8 @@ export function FloatingActionButton({
       onPress={handlePress}
       onPressIn={() => animateTo(PRESS_SCALE)}
       onPressOut={() => animateTo(1)}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
     >
       <Animated.View
         style={[
