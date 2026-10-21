@@ -1,47 +1,37 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  SectionList,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Waves } from 'lucide-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useMarkedDates } from '@/hooks/useMarkedDates';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
-import { WorkoutCalendar, WorkoutListItem } from '@/components';
-import { EmptyState } from '@/components/ui';
-import { Workout } from '@/types';
-import { formatMonthTitle, toISODate } from '@/utils/date';
-import { groupByMonth } from '@/utils/stats';
+import { useWorkoutsByDate } from '@/hooks/useWorkoutsByDate';
+import { DayWorkoutsList, WorkoutCalendar } from '@/components';
+import { toISODate } from '@/utils/date';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutsList'>;
 
-interface WorkoutSection {
-  title: string;
-  data: Workout[];
-}
-
-function toSections(workouts: Workout[]): WorkoutSection[] {
-  return groupByMonth(workouts).map(({ month, workouts: data }) => ({
-    title: formatMonthTitle(`${month}-01`),
-    data,
-  }));
-}
-
+/**
+ * Tab Entrenamientos: calendario del mes + entrenamientos del día elegido.
+ * Solo conecta hooks con componentes; el armado visual vive en
+ * WorkoutCalendar y DayWorkoutsList.
+ */
 export function WorkoutsListScreen({ navigation }: Props) {
-  const { workouts, isLoading, error, reload } = useWorkouts();
-  const sections = useMemo(() => toSections(workouts), [workouts]);
+  const { isLoading, error, reload } = useWorkouts();
   const markedDates = useMarkedDates();
   const { stats } = useWorkoutStats();
-  // Arranca en hoy. La lista filtrada por este día llega con la card 5.2.
   const [selectedDate, setSelectedDate] = useState(() => toISODate(new Date()));
+  const dayWorkouts = useWorkoutsByDate(selectedDate);
 
   if (isLoading) {
     return (
@@ -63,46 +53,30 @@ export function WorkoutsListScreen({ navigation }: Props) {
   }
 
   return (
-    <SectionList
+    <ScrollView
       style={styles.root}
       contentContainerStyle={styles.content}
       // Necesario para que el título grande (headerLargeTitle) colapse al scrollear.
       contentInsetAdjustmentBehavior="automatic"
-      sections={sections}
-      keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
-      // El calendario se muestra siempre, aunque todavía no haya entrenos.
-      ListHeaderComponent={
-        <WorkoutCalendar
-          markedDates={markedDates}
-          selectedDate={selectedDate}
-          onDayPress={setSelectedDate}
-          monthTotals={stats.byMonth}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={reload} />}
+    >
+      <WorkoutCalendar
+        markedDates={markedDates}
+        selectedDate={selectedDate}
+        onDayPress={setSelectedDate}
+        monthTotals={stats.byMonth}
+      />
+
+      <View style={styles.day}>
+        <DayWorkoutsList
+          date={selectedDate}
+          workouts={dayWorkouts}
+          onPressWorkout={(workoutId) => navigation.navigate('WorkoutDetail', { workoutId })}
+          onAddWorkout={(date) => navigation.navigate('WorkoutForm', { date })}
         />
-      }
-      ListEmptyComponent={
-        <EmptyState
-          icon={Waves}
-          title="Todavía no cargaste entrenamientos"
-          description="Registrá tu primera sesión para empezar a ver tu progreso."
-          ctaLabel="Agregar entrenamiento"
-          onPressCta={() => navigation.navigate('WorkoutForm', {})}
-        />
-      }
-      // Sticky headers taparían el calendario al scrollear.
-      stickySectionHeadersEnabled={false}
-      renderSectionHeader={({ section }) => (
-        <Text style={styles.sectionTitle}>{section.title}</Text>
-      )}
-      renderItem={({ item }) => (
-        <WorkoutListItem
-          workout={item}
-          onPress={() => navigation.navigate('WorkoutForm', { workoutId: item.id })}
-        />
-      )}
-      onRefresh={reload}
-      refreshing={false}
-    />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -115,18 +89,15 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
   },
+  day: {
+    marginTop: spacing.xl,
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
     padding: spacing.lg,
-  },
-  sectionTitle: {
-    ...typography.h2,
-    color: colors.textPrimary,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
   },
   errorText: {
     ...typography.body,
