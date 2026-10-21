@@ -7,14 +7,29 @@ export function formatNumber(value: number): string {
   return value.toLocaleString('es-AR');
 }
 
+/** Un valor ya formateado con su unidad aparte, para mostrarlos con estilos distintos. */
+export interface ValueWithUnit {
+  value: string;
+  unit: string;
+}
+
+/**
+ * Distancia separada en número y unidad: desde 10.000 m pasa a km con un decimal.
+ * 8400 -> { "8.400", "m" }, 12500 -> { "12,5", "km" }.
+ */
+export function formatMetersParts(meters: number): ValueWithUnit {
+  if (meters < KM_THRESHOLD) return { value: formatNumber(meters), unit: 'm' };
+  const km = (meters / 1000).toLocaleString('es-AR', { maximumFractionDigits: 1 });
+  return { value: km, unit: 'km' };
+}
+
 /**
  * Distancia con unidad: desde 10.000 m pasa a km con un decimal.
  * 8400 -> "8.400 m", 12500 -> "12,5 km", 20000 -> "20 km".
  */
 export function formatMeters(meters: number): string {
-  if (meters < KM_THRESHOLD) return `${formatNumber(meters)} m`;
-  const km = (meters / 1000).toLocaleString('es-AR', { maximumFractionDigits: 1 });
-  return `${km} km`;
+  const { value, unit } = formatMetersParts(meters);
+  return `${value} ${unit}`;
 }
 
 /**

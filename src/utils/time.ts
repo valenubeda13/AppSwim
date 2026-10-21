@@ -17,6 +17,20 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
+ * Duración corta para stats, con la unidad aparte (entra en una columna
+ * angosta): 2700 -> { "45", "min" }, 3900 -> { "1:05", "h" }.
+ * Redondea al minuto.
+ */
+export function formatDurationParts(seconds: number): { value: string; unit: string } {
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0
+    ? { value: `${hours}:${pad2(minutes)}`, unit: 'h' }
+    : { value: String(minutes), unit: 'min' };
+}
+
+/**
  * Tiempo de una marca, con centésimas: 62450 -> "1:02.45", 28300 -> "28.30".
  * Redondea a la centésima.
  */

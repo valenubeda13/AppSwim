@@ -1,17 +1,18 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextStyle } from 'react-native';
 import { colors, spacing, typography } from '@/theme';
 
 interface SectionTitleProps {
   children: string;
+  style?: StyleProp<TextStyle>;
 }
 
 /**
  * Título usado para encabezar cada sección de la Home
  * ("Accesos rápidos", "Resumen", "Consejo del día"...).
  */
-export function SectionTitle({ children }: SectionTitleProps) {
-  return <Text style={styles.text}>{children}</Text>;
+export function SectionTitle({ children, style }: SectionTitleProps) {
+  return <Text style={[styles.text, style]}>{children}</Text>;
 }
 
 const styles = StyleSheet.create({

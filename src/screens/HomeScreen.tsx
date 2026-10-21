@@ -1,73 +1,89 @@
 import React from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Calendar, Trophy } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { colors, spacing } from '@/theme';
 import { getGreeting } from '@/utils/format';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useProfile } from '@/hooks/useProfile';
-import { HomeHeader, QuickAccessCard, SummaryCard, TipCard, SectionTitle } from '@/components';
+import { useRecordCount } from '@/hooks/useRecordCount';
+import { useToday } from '@/hooks/useToday';
+import { getQuoteOfDay } from '@/constants/quotes';
+import {
+  HomeHeader,
+  QuickAccessItem,
+  QuickAccessRow,
+  MotivationCard,
+  StatsSummary,
+  SectionTitle,
+} from '@/components';
 
-const DAILY_TIP = {
-  quote: 'La disciplina de hoy es el éxito de mañana.',
-  caption: 'Seguí entrenando, cada metro cuenta.',
-};
+/** Separación entre la entrada de cada sección (efecto escalonado). */
+const STAGGER_MS = 80;
+const ENTER_DURATION_MS = 400;
+
+/** Entrada de la sección n-ésima: aparece subiendo, un poco después que la anterior. */
+const enterAt = (index: number) =>
+  FadeInDown.delay(index * STAGGER_MS).duration(ENTER_DURATION_MS);
 
 export function HomeScreen() {
   const navigation = useNavigation();
   const { stats, isLoading } = useWorkoutStats();
   const { profile } = useProfile();
+  const isFocused = useIsFocused();
+  const recordCount = useRecordCount();
+  // useToday: si la app queda abierta de un día para otro, la frase cambia sola.
+  const quote = getQuoteOfDay(useToday());
+
+  const quickAccess: QuickAccessItem[] = [
+    {
+      key: 'workouts',
+      icon: Calendar,
+      title: 'Entrenamientos',
+      subtitle: isLoading ? '…' : `${stats.thisMonth.workouts} este mes`,
+      onPress: () => navigation.navigate('Entrenamientos', { screen: 'WorkoutsList' }),
+    },
+    {
+      key: 'records',
+      icon: Trophy,
+      title: 'Mis marcas',
+      subtitle:
+        recordCount === null ? '…' : `${recordCount} ${recordCount === 1 ? 'marca' : 'marcas'}`,
+      onPress: () => navigation.navigate('MisMarcas', { screen: 'RecordsList' }),
+    },
+  ];
 
   return (
     <View style={styles.root}>
+      {/* Texto claro en el status bar mientras se ve la foto del header */}
+      {isFocused && <StatusBar style="light" />}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <HomeHeader
-          userName={profile?.name ?? 'Nadador/a'}
-          greeting={getGreeting()}
-          streakDays={stats.streakDays}
-        />
+        {/* El header solo hace fade: si bajara, dejaría un hueco bajo el status bar */}
+        <Animated.View entering={FadeIn.duration(ENTER_DURATION_MS)}>
+          <HomeHeader
+            userName={profile?.name}
+            greeting={getGreeting()}
+            streakDays={stats.streakDays}
+          />
+        </Animated.View>
 
         <View style={styles.content}>
-          {/* Accesos rápidos */}
-          <View style={styles.section}>
+          <Animated.View entering={enterAt(1)} style={styles.section}>
             <SectionTitle>Accesos rápidos</SectionTitle>
-            <View style={styles.quickAccessRow}>
-              <QuickAccessCard
-                icon={Calendar}
-                title="Entrenos"
-                subtitle="Ver y registrar"
-                backgroundColor={colors.primaryLight}
-                accentColor={colors.primary}
-                onPress={() => navigation.navigate('Entrenamientos', { screen: 'WorkoutsList' })}
-              />
-              <View style={{ width: spacing.md }} />
-              <QuickAccessCard
-                icon={Trophy}
-                title="Mis marcas"
-                subtitle="Ver y mejorar"
-                backgroundColor={colors.successLight}
-                accentColor={colors.success}
-                onPress={() => navigation.navigate('MisMarcas', { screen: 'RecordsList' })}
-              />
-            </View>
-          </View>
+            <QuickAccessRow items={quickAccess} />
+          </Animated.View>
 
-          {/* Resumen */}
-          <View style={styles.section}>
-            <SectionTitle>Resumen</SectionTitle>
-            {isLoading ? (
-              <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.lg }} />
-            ) : (
-              <SummaryCard totals={stats.thisMonth} />
-            )}
-          </View>
+          <Animated.View entering={enterAt(2)} style={styles.section}>
+            <StatsSummary />
+          </Animated.View>
 
-          {/* Consejo del día */}
-          <View style={styles.section}>
-            <SectionTitle>Consejo del día</SectionTitle>
-            <TipCard quote={DAILY_TIP.quote} caption={DAILY_TIP.caption} />
-          </View>
+          <Animated.View entering={enterAt(3)} style={styles.section}>
+            <SectionTitle>Frase del día</SectionTitle>
+            <MotivationCard quote={quote} />
+          </Animated.View>
         </View>
       </ScrollView>
     </View>
@@ -88,8 +104,5 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.xl,
-  },
-  quickAccessRow: {
-    flexDirection: 'row',
   },
 });

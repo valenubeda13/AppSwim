@@ -1,4 +1,4 @@
-import { formatMeters, formatNumber, getGreeting, getInitials } from '../format';
+import { formatMeters, formatMetersParts, formatNumber, getGreeting, getInitials } from '../format';
 
 describe('formatNumber', () => {
   it('usa punto como separador de miles', () => {
@@ -25,6 +25,13 @@ describe('getInitials', () => {
     expect(getInitials('Valentina Ubeda')).toBe('VU');
     expect(getInitials('Nadador/a')).toBe('N');
     expect(getInitials('  ')).toBe('?');
+  });
+});
+
+describe('formatMetersParts', () => {
+  it('separa número y unidad', () => {
+    expect(formatMetersParts(8400)).toEqual({ value: '8.400', unit: 'm' });
+    expect(formatMetersParts(12500)).toEqual({ value: '12,5', unit: 'km' });
   });
 });
 

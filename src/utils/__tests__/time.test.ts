@@ -1,4 +1,4 @@
-import { formatDuration, formatSwimTime, parseDuration } from '../time';
+import { formatDuration, formatDurationParts, formatSwimTime, parseDuration } from '../time';
 
 describe('formatDuration', () => {
   it('muestra horas con minutos de dos dígitos', () => {
@@ -14,6 +14,15 @@ describe('formatDuration', () => {
   it('redondea al minuto', () => {
     expect(formatDuration(89)).toBe('1 min');
     expect(formatDuration(3570)).toBe('1 h 00 min');
+  });
+});
+
+describe('formatDurationParts', () => {
+  it('separa número y unidad', () => {
+    expect(formatDurationParts(2700)).toEqual({ value: '45', unit: 'min' });
+    expect(formatDurationParts(3600)).toEqual({ value: '1:00', unit: 'h' });
+    expect(formatDurationParts(3900)).toEqual({ value: '1:05', unit: 'h' });
+    expect(formatDurationParts(0)).toEqual({ value: '0', unit: 'min' });
   });
 });
 
