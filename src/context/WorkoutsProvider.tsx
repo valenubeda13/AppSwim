@@ -5,9 +5,14 @@ import { workoutRepository } from '@/services/repositories';
 export interface WorkoutsContextValue {
   /** Del más reciente al más viejo. */
   workouts: Workout[];
+  /** Carga inicial (o "Reintentar"): las pantallas pueden mostrar un spinner completo. */
   isLoading: boolean;
+  /** Pull-to-refresh en curso: los datos que ya se ven siguen en pantalla. */
+  isRefreshing: boolean;
   error: string | null;
   reload: () => Promise<void>;
+  /** Para pull-to-refresh: vuelve a leer sin tocar `isLoading`. */
+  refresh: () => Promise<void>;
   addWorkout: (input: NewWorkout) => Promise<Workout>;
   updateWorkout: (id: string, changes: Partial<NewWorkout>) => Promise<Workout>;
   deleteWorkout: (id: string) => Promise<void>;
@@ -26,6 +31,7 @@ export const WorkoutsContext = createContext<WorkoutsContextValue | null>(null);
 export function WorkoutsProvider({ children }: { children: ReactNode }) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
@@ -48,58 +54,83 @@ export function WorkoutsProvider({ children }: { children: ReactNode }) {
     })();
   }, [reload]);
 
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
+    setError(null);
+    try {
+      setWorkouts(await workoutRepository.getAll());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar los entrenamientos.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
   // Después de cada cambio se vuelve a pedir la lista al repositorio (en vez
   // de editar el array acá) para que el orden lo decida un solo lugar.
-  const refresh = useCallback(async () => {
+  const sync = useCallback(async () => {
     setWorkouts(await workoutRepository.getAll());
   }, []);
 
   const addWorkout = useCallback(
     async (input: NewWorkout) => {
       const created = await workoutRepository.create(input);
-      await refresh();
+      await sync();
       return created;
     },
-    [refresh]
+    [sync]
   );
 
   const updateWorkout = useCallback(
     async (id: string, changes: Partial<NewWorkout>) => {
       const updated = await workoutRepository.update(id, changes);
-      await refresh();
+      await sync();
       return updated;
     },
-    [refresh]
+    [sync]
   );
 
   const deleteWorkout = useCallback(
     async (id: string) => {
       await workoutRepository.remove(id);
-      await refresh();
+      await sync();
     },
-    [refresh]
+    [sync]
   );
 
   const restoreWorkout = useCallback(
     async (workout: Workout) => {
       await workoutRepository.restore(workout);
-      await refresh();
+      await sync();
     },
-    [refresh]
+    [sync]
   );
 
   const value = useMemo(
     () => ({
       workouts,
       isLoading,
+      isRefreshing,
       error,
       reload,
+      refresh,
       addWorkout,
       updateWorkout,
       deleteWorkout,
       restoreWorkout,
     }),
-    [workouts, isLoading, error, reload, addWorkout, updateWorkout, deleteWorkout, restoreWorkout]
+    [
+      workouts,
+      isLoading,
+      isRefreshing,
+      error,
+      reload,
+      refresh,
+      addWorkout,
+      updateWorkout,
+      deleteWorkout,
+      restoreWorkout,
+    ]
   );
 
   return <WorkoutsContext.Provider value={value}>{children}</WorkoutsContext.Provider>;

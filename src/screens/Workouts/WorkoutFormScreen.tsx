@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 
 import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
@@ -129,6 +130,19 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
     );
   }
 
+  // Lleva el calendario a la fecha guardada (puede no ser el día que estaba
+  // seleccionado). Se setea el param sin navegar: si se editó desde el
+  // detalle, se vuelve al detalle como siempre.
+  const showDateInCalendar = (savedDate: string) => {
+    const listRoute = navigation.getState().routes.find((r) => r.name === 'WorkoutsList');
+    if (listRoute) {
+      navigation.dispatch({
+        ...CommonActions.setParams({ date: savedDate }),
+        source: listRoute.key,
+      });
+    }
+  };
+
   const onSubmit = async (values: WorkoutFormValues) => {
     setServerError(null);
 
@@ -150,6 +164,7 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       } else {
         await addWorkout(input);
       }
+      showDateInCalendar(values.date);
       navigation.goBack();
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'No se pudo guardar el entrenamiento.');

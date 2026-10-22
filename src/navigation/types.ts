@@ -1,7 +1,8 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type WorkoutsStackParamList = {
-  WorkoutsList: undefined;
+  /** `date` (YYYY-MM-DD): día a mostrar en el calendario, ej. el del entreno recién guardado. */
+  WorkoutsList: { date?: string } | undefined;
   WorkoutDetail: { workoutId: string };
   /** Sin workoutId = alta; con workoutId = edición. `date` (YYYY-MM-DD) preselecciona el día. */
   WorkoutForm: { workoutId?: string; date?: string };
