@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { colors, typography } from '@/theme';
-import { Card } from './ui';
+import { Card } from '@/components/ui';
 
 interface NotesCardProps {
   notes?: string;

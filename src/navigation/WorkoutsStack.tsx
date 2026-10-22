@@ -1,9 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { WorkoutsListScreen } from '@/screens/WorkoutsListScreen';
-import { WorkoutFormScreen } from '@/screens/WorkoutFormScreen';
-import { WorkoutDetailScreen } from '@/screens/WorkoutDetailScreen';
+import { WorkoutDetailScreen, WorkoutFormScreen, WorkoutsScreen } from '@/screens/Workouts';
 import { formModalOptions, rootScreenOptions, stackScreenOptions } from './stackOptions';
 import { WorkoutsStackParamList } from './types';
 
@@ -19,7 +17,7 @@ export function WorkoutsStack() {
     <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="WorkoutsList"
-        component={WorkoutsListScreen}
+        component={WorkoutsScreen}
         // El alta se hace con el FAB de la pantalla (con la fecha elegida), no desde el header.
         options={{ ...rootScreenOptions, title: 'Entrenamientos' }}
       />

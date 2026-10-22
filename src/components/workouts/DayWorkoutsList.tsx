@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Waves } from 'lucide-react-native';
 import { colors, spacing, typography } from '@/theme';
-import { EmptyState } from './ui';
+import { EmptyState } from '@/components/ui';
 import { WorkoutCard } from './WorkoutCard';
 import { SwipeToDelete } from './SwipeToDelete';
 import { Workout } from '@/types';

@@ -4,7 +4,7 @@ import { Calendar, type DateData } from 'react-native-calendars';
 import type { MarkedDates as CalendarMarkedDates } from 'react-native-calendars/src/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { colors, spacing, typography } from '@/theme';
-import { Card } from './ui';
+import { Card } from '@/components/ui';
 import { calendarTheme } from './calendarTheme';
 import type { MarkedDates } from '@/hooks/useMarkedDates';
 import type { WorkoutTotals } from '@/hooks/useWorkoutStats';

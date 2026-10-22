@@ -11,7 +11,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontFamily, radius, shadow, spacing, typography } from '@/theme';
-import { tabBarHeightFor } from '@/components/navigation/CustomTabBar';
+import { tabBarHeightFor } from '@/components/navigation';
 
 const DEFAULT_DURATION_MS = 4000;
 

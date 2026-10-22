@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Activity, LucideIcon, Timer, Waves } from 'lucide-react-native';
 import { colors, spacing, typography } from '@/theme';
-import { StatCard, SegmentedControl } from '@/components/ui';
+import { SectionTitle, SegmentedControl, StatCard } from '@/components/ui';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { formatMetersParts, formatNumber, ValueWithUnit } from '@/utils/format';
 import { formatDurationParts } from '@/utils/time';
-import { SectionTitle } from './SectionTitle';
 
 type Period = 'month' | 'total';
 

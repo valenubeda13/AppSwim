@@ -13,7 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, spacing, typography } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
 import { useWorkoutStats } from '@/hooks/useWorkoutStats';
-import { CircularProgress, ProfileHeader, SectionCard } from '@/components';
+import { CircularProgress, ProfileHeader, SectionCard } from '@/components/profile';
 import { EmptyState } from '@/components/ui';
 import { parseISODate } from '@/utils/date';
 import { formatMeters } from '@/utils/format';

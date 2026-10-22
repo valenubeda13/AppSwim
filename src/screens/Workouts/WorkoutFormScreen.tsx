@@ -17,7 +17,7 @@ import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useDeleteWorkout } from '@/hooks/useDeleteWorkout';
 import { SegmentedControl } from '@/components/ui';
-import { SetsEditor } from '@/components/SetsEditor';
+import { SetsEditor } from '@/components/workouts';
 import { Intensity, NewWorkout, PoolLength } from '@/types';
 import { isISODate, toISODate } from '@/utils/date';
 import { fromSetFormValues, SetFormValues, toSetFormValues } from '@/utils/sets';

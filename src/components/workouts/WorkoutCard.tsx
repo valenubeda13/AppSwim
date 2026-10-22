@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Flame, Layers, Timer, Waves } from 'lucide-react-native';
 import { colors, spacing, typography } from '@/theme';
-import { Badge, Card } from './ui';
+import { Badge, Card } from '@/components/ui';
 import { WorkoutMetric } from './WorkoutMetric';
 import { Workout } from '@/types';
 import { INTENSITY_BADGE_LEVEL, INTENSITY_LABEL } from '@/constants/intensity';

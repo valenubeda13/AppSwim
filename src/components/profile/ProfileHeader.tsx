@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Pencil, Waves } from 'lucide-react-native';
 import { colors, fontFamily, radius, spacing, typography } from '@/theme';
 import { AvatarPicker } from './AvatarPicker';
-import { WaveShape } from './WaveShape';
+import { WaveShape } from '@/components/home';
 import { Gender } from '@/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

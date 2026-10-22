@@ -18,8 +18,8 @@ import {
   QuickAccessRow,
   MotivationCard,
   StatsSummary,
-  SectionTitle,
-} from '@/components';
+} from '@/components/home';
+import { SectionTitle } from '@/components/ui';
 
 /** Separación entre la entrada de cada sección (efecto escalonado). */
 const STAGGER_MS = 80;

@@ -2,9 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { House, CalendarDays, Trophy, User, FlaskConical } from 'lucide-react-native';
 
-import { CustomTabBar, ICON_SIZE } from '@/components/navigation/CustomTabBar';
-import { HomeScreen } from '@/screens/HomeScreen';
-import { DevPlaygroundScreen } from '@/screens/DevPlaygroundScreen';
+import { CustomTabBar, ICON_SIZE } from '@/components/navigation';
+import { HomeScreen } from '@/screens/Home';
+import { DevPlaygroundScreen } from '@/screens/Dev';
 import { WorkoutsStack } from './WorkoutsStack';
 import { RecordsStack } from './RecordsStack';
 import { ProfileStack } from './ProfileStack';

@@ -17,7 +17,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, radius, spacing, typography } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
-import { AvatarPicker } from '@/components';
+import { AvatarPicker } from '@/components/profile';
 import { SegmentedControl } from '@/components/ui';
 import { Gender, PoolLength, ProfileInput } from '@/types';
 import { ProfileStackParamList } from '@/navigation/types';

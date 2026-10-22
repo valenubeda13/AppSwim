@@ -50,18 +50,18 @@ swim-app/
 │   │   └── workoutService.ts       # CRUD de entrenamientos (con datos demo)
 │   ├── hooks/
 │   │   └── useHomeStats.ts         # Calcula estadísticas del mes para la Home
-│   ├── components/                 # Piezas reutilizables y chicas (una responsabilidad c/u)
-│   │   ├── HomeHeader.tsx          # Foto + degradado + saludo + racha + ola
-│   │   ├── StreakBadge.tsx         # Pastilla "Racha actual"
-│   │   ├── WaveShape.tsx           # SVG de la ola que cierra el header
-│   │   ├── QuickAccessCard.tsx     # Card de "Entrenamientos" / "Mis marcas"
-│   │   ├── StatItem.tsx            # Un valor dentro del resumen
-│   │   ├── SummaryCard.tsx         # Card blanca con los 3 StatItem + divisores
-│   │   ├── TipCard.tsx             # Card "Consejo del día"
-│   │   └── SectionTitle.tsx        # Título de sección reutilizable
-│   ├── screens/
-│   │   ├── HomeScreen.tsx          # Compone todo lo anterior → pantalla Inicio
-│   │   └── PlaceholderScreen.tsx   # Placeholder temporal de las otras 3 pestañas
+│   ├── components/                 # Piezas chicas (una responsabilidad c/u), agrupadas por feature
+│   │   ├── ui/                     # Primitivas compartidas: AppText, Card, Button, SectionTitle…
+│   │   ├── navigation/             # CustomTabBar
+│   │   ├── home/                   # HomeHeader, StreakBadge, WaveShape, QuickAccess*, StatsSummary…
+│   │   ├── workouts/               # WorkoutCalendar, DayWorkoutsList, WorkoutCard, Sets*, NotesCard…
+│   │   └── profile/                # ProfileHeader, AvatarPicker, CircularProgress, SectionCard
+│   ├── screens/                    # Una carpeta por feature, cada una con su index.ts
+│   │   ├── Home/                   # HomeScreen
+│   │   ├── Workouts/               # WorkoutsScreen (calendario), WorkoutDetailScreen, WorkoutFormScreen
+│   │   ├── Profile/                # ProfileScreen, EditProfileScreen
+│   │   ├── Placeholder/            # Placeholder temporal de Mis marcas
+│   │   └── Dev/                    # DevPlaygroundScreen
 │   └── navigation/
 │       ├── BottomTabNavigator.tsx  # Tab bar inferior con los 4 íconos
 │       └── types.ts                # Tipado del param list de navegación

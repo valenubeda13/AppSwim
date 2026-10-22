@@ -9,3 +9,4 @@ export * from './Badge';
 export * from './EmptyState';
 export * from './FloatingActionButton';
 export * from './SegmentedControl';
+export * from './SectionTitle';

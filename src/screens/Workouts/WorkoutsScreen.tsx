@@ -23,7 +23,7 @@ import { useWorkoutStats } from '@/hooks/useWorkoutStats';
 import { useWorkoutsByDate } from '@/hooks/useWorkoutsByDate';
 import { useDeleteWorkout } from '@/hooks/useDeleteWorkout';
 import { useToast } from '@/hooks/useToast';
-import { DayWorkoutsList, WorkoutCalendar } from '@/components';
+import { DayWorkoutsList, WorkoutCalendar } from '@/components/workouts';
 import { FloatingActionButton } from '@/components/ui';
 import { toISODate } from '@/utils/date';
 import { WorkoutsStackParamList } from '@/navigation/types';
@@ -41,7 +41,7 @@ const TOAST_CLEARANCE = 64;
  * Solo conecta hooks con componentes; el armado visual vive en
  * WorkoutCalendar y DayWorkoutsList.
  */
-export function WorkoutsListScreen({ navigation }: Props) {
+export function WorkoutsScreen({ navigation }: Props) {
   const { workouts, isLoading, error, reload } = useWorkouts();
   const markedDates = useMarkedDates();
   const { stats } = useWorkoutStats();

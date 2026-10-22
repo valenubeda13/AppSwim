@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, fontFamily, radius, spacing, typography } from '@/theme';
-import { Badge } from './ui';
+import { Badge } from '@/components/ui';
 import { Workout } from '@/types';
 import { INTENSITY_BADGE_LEVEL, INTENSITY_LABEL } from '@/constants/intensity';
 import { formatLongDate } from '@/utils/date';
