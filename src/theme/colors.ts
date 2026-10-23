@@ -25,6 +25,12 @@ export const colors = {
   error: '#D14343',
   errorLight: '#FBEAEA',
 
+  // Escala de intensidad (IntensityPicker): celeste -> azul profundo
+  intensityLow: '#7CCBF5',
+  intensityMedium: '#3A9BF0',
+  intensityHigh: '#1F6FEB',
+  intensityMax: '#0B2545',
+
   // Neutros
   background: '#F5F8FC', // fondo general de la app
   surface: '#FFFFFF', // cards, tab bar

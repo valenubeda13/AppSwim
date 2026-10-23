@@ -17,12 +17,12 @@ export interface SetsFormValues {
 const STROKES = Object.keys(STROKE_LABEL) as SwimStroke[];
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-const isPositiveInt = (value: string) => /^\d+$/.test(value) && Number(value) > 0;
 
 /**
  * Editor de series del formulario de entrenamiento: agregar, editar y
  * borrar series ("4 × 100 m crol · desc. 20 s"). Lee el form con
  * useFormContext, así que tiene que estar dentro de un <FormProvider>.
+ * Las reglas de cada serie están en `workoutSchema` (Zod).
  *
  * Si la suma de las series no coincide con los metros totales, ofrece
  * usarla como total (no lo pisa solo: puede haber metros sueltos fuera de
@@ -67,7 +67,6 @@ export function SetsEditor() {
                 <Controller
                   control={control}
                   name={`sets.${index}.repetitions`}
-                  rules={{ validate: (v) => isPositiveInt(v) || 'Mayor a 0' }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
                       style={styles.input}
@@ -87,7 +86,6 @@ export function SetsEditor() {
                 <Controller
                   control={control}
                   name={`sets.${index}.distance`}
-                  rules={{ validate: (v) => isPositiveInt(v) || 'Mayor a 0' }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
                       style={styles.input}
@@ -105,7 +103,6 @@ export function SetsEditor() {
                 <Controller
                   control={control}
                   name={`sets.${index}.rest`}
-                  rules={{ validate: (v) => !v.trim() || /^\d+$/.test(v) || 'Número' }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
                       style={styles.input}

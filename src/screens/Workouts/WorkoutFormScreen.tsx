@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -6,61 +6,27 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { FormProvider } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 
-import { colors, fontFamily, radius, spacing, typography } from '@/theme';
-import { useWorkouts } from '@/hooks/useWorkouts';
+import { colors, radius, spacing, typography } from '@/theme';
 import { useDeleteWorkout } from '@/hooks/useDeleteWorkout';
-import { SegmentedControl } from '@/components/ui';
+import {
+  DateField,
+  DurationField,
+  IntensityPicker,
+  PoolLengthField,
+  TextField,
+} from '@/components/form';
 import { SetsEditor } from '@/components/workouts';
-import { Intensity, NewWorkout, PoolLength } from '@/types';
-import { isISODate, toISODate } from '@/utils/date';
-import { fromSetFormValues, SetFormValues, toSetFormValues } from '@/utils/sets';
+import { NOTES_MAX_LENGTH, useWorkoutForm } from '@/features/workoutForm';
 import { WorkoutsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<WorkoutsStackParamList, 'WorkoutForm'>;
-
-interface WorkoutFormValues {
-  date: string;
-  poolLength: PoolLength;
-  totalMeters: string;
-  durationMinutes: string;
-  intensity: Intensity;
-  calories: string;
-  notes: string;
-  sets: SetFormValues[];
-}
-
-const POOL_OPTIONS: { value: PoolLength; label: string }[] = [
-  { value: 25, label: '25 m' },
-  { value: 50, label: '50 m' },
-];
-
-const INTENSITY_OPTIONS: { value: Intensity; label: string }[] = [
-  { value: 'low', label: 'Suave' },
-  { value: 'medium', label: 'Moderada' },
-  { value: 'high', label: 'Alta' },
-  { value: 'max', label: 'Máxima' },
-];
-
-const QUICK_DATES = [
-  { label: 'Hoy', offset: 0 },
-  { label: 'Ayer', offset: 1 },
-  { label: 'Anteayer', offset: 2 },
-];
-
-function quickDateIso(offsetDays: number): string {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() - offsetDays);
-  return toISODate(date);
-}
 
 /**
  * Alta y edición de un entrenamiento (mismo formulario para ambos casos,
@@ -69,50 +35,40 @@ function quickDateIso(offsetDays: number): string {
 export function WorkoutFormScreen({ navigation, route }: Props) {
   // `date` llega al abrir el alta desde un día del calendario (FAB o "Registrar").
   const { workoutId, date: initialDate } = route.params;
-  const isEditing = Boolean(workoutId);
-  const { workouts, isLoading, addWorkout, updateWorkout } = useWorkouts();
   const deleteWithUndo = useDeleteWorkout();
-  const [serverError, setServerError] = useState<string | null>(null);
 
-  const existing = workoutId ? workouts.find((w) => w.id === workoutId) : undefined;
+  // Lleva el calendario a la fecha guardada (puede no ser el día que estaba
+  // seleccionado). Se setea el param sin navegar: si se editó desde el
+  // detalle, se vuelve al detalle como siempre.
+  const showDateInCalendar = (savedDate: string) => {
+    const listRoute = navigation.getState().routes.find((r) => r.name === 'WorkoutsList');
+    if (listRoute) {
+      navigation.dispatch({
+        ...CommonActions.setParams({ date: savedDate }),
+        source: listRoute.key,
+      });
+    }
+  };
 
-  const form = useForm<WorkoutFormValues>({
-    defaultValues: {
-      date: initialDate && isISODate(initialDate) ? initialDate : toISODate(new Date()),
-      poolLength: 25,
-      totalMeters: '',
-      durationMinutes: '',
-      intensity: 'medium',
-      calories: '',
-      notes: '',
-      sets: [],
-    },
-  });
+  const { form, onSubmit, isEditing, existing, isLoading, serverError } = useWorkoutForm(
+    workoutId,
+    initialDate,
+    {
+      onSaved: (saved) => {
+        showDateInCalendar(saved.date);
+        navigation.goBack();
+      },
+    }
+  );
   const {
     control,
     handleSubmit,
-    reset,
-    setValue,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = form;
 
   useEffect(() => {
     navigation.setOptions({ title: isEditing ? 'Editar entrenamiento' : 'Nuevo entrenamiento' });
   }, [navigation, isEditing]);
-
-  useEffect(() => {
-    if (!existing) return;
-    reset({
-      date: existing.date,
-      poolLength: existing.poolLength,
-      totalMeters: String(existing.totalMeters),
-      durationMinutes: String(Math.round(existing.durationSeconds / 60)),
-      intensity: existing.intensity,
-      calories: existing.calories !== undefined ? String(existing.calories) : '',
-      notes: existing.notes ?? '',
-      sets: existing.sets.map(toSetFormValues),
-    });
-  }, [existing, reset]);
 
   if (isEditing && isLoading) {
     return (
@@ -129,47 +85,6 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
       </View>
     );
   }
-
-  // Lleva el calendario a la fecha guardada (puede no ser el día que estaba
-  // seleccionado). Se setea el param sin navegar: si se editó desde el
-  // detalle, se vuelve al detalle como siempre.
-  const showDateInCalendar = (savedDate: string) => {
-    const listRoute = navigation.getState().routes.find((r) => r.name === 'WorkoutsList');
-    if (listRoute) {
-      navigation.dispatch({
-        ...CommonActions.setParams({ date: savedDate }),
-        source: listRoute.key,
-      });
-    }
-  };
-
-  const onSubmit = async (values: WorkoutFormValues) => {
-    setServerError(null);
-
-    const input: NewWorkout = {
-      date: values.date,
-      poolLength: values.poolLength,
-      totalMeters: Number(values.totalMeters),
-      // El formulario pide minutos; se guarda en segundos.
-      durationSeconds: Number(values.durationMinutes) * 60,
-      intensity: values.intensity,
-      calories: values.calories.trim() ? Number(values.calories) : undefined,
-      notes: values.notes.trim() ? values.notes.trim() : undefined,
-      sets: values.sets.map(fromSetFormValues),
-    };
-
-    try {
-      if (isEditing && workoutId) {
-        await updateWorkout(workoutId, input);
-      } else {
-        await addWorkout(input);
-      }
-      showDateInCalendar(values.date);
-      navigation.goBack();
-    } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'No se pudo guardar el entrenamiento.');
-    }
-  };
 
   const handleDelete = () => {
     if (!existing) return;
@@ -189,163 +104,35 @@ export function WorkoutFormScreen({ navigation, route }: Props) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.field}>
-            <Text style={styles.label}>Fecha</Text>
-            <Controller
-              control={control}
-              name="date"
-              rules={{
-                required: 'La fecha es obligatoria',
-                validate: (value) => isISODate(value) || 'Fecha inválida (formato AAAA-MM-DD)',
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor={colors.textTertiary}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-            {errors.date && <Text style={styles.fieldError}>{errors.date.message}</Text>}
-
-            <View style={styles.quickDatesRow}>
-              {QUICK_DATES.map((quick) => (
-                <TouchableOpacity
-                  key={quick.label}
-                  style={styles.quickDateChip}
-                  activeOpacity={0.8}
-                  onPress={() => setValue('date', quickDateIso(quick.offset))}
-                >
-                  <Text style={styles.quickDateLabel}>{quick.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Pileta</Text>
-            <Controller
-              control={control}
-              name="poolLength"
-              render={({ field: { onChange, value } }) => (
-                <SegmentedControl options={POOL_OPTIONS} value={value} onChange={onChange} />
-              )}
-            />
-          </View>
-
-          <View style={styles.row}>
-            <View style={[styles.field, styles.flexField]}>
-              <Text style={styles.label}>Metros totales</Text>
-              <Controller
-                control={control}
-                name="totalMeters"
-                rules={{
-                  required: 'Requerido',
-                  validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="3000"
-                    placeholderTextColor={colors.textTertiary}
-                    keyboardType="number-pad"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                  />
-                )}
-              />
-              {errors.totalMeters && (
-                <Text style={styles.fieldError}>{errors.totalMeters.message}</Text>
-              )}
-            </View>
-
-            <View style={{ width: spacing.md }} />
-
-            <View style={[styles.field, styles.flexField]}>
-              <Text style={styles.label}>Tiempo (min)</Text>
-              <Controller
-                control={control}
-                name="durationMinutes"
-                rules={{
-                  required: 'Requerido',
-                  validate: (value) => (/^\d+$/.test(value) ? true : 'Ingresá un número'),
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="60"
-                    placeholderTextColor={colors.textTertiary}
-                    keyboardType="number-pad"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                  />
-                )}
-              />
-              {errors.durationMinutes && (
-                <Text style={styles.fieldError}>{errors.durationMinutes.message}</Text>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Intensidad</Text>
-            <Controller
-              control={control}
-              name="intensity"
-              render={({ field: { onChange, value } }) => (
-                <SegmentedControl options={INTENSITY_OPTIONS} value={value} onChange={onChange} />
-              )}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Calorías (opcional)</Text>
-            <Controller
-              control={control}
-              name="calories"
-              rules={{
-                validate: (value) => !value.trim() || /^\d+$/.test(value) || 'Ingresá un número',
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="450"
-                  placeholderTextColor={colors.textTertiary}
-                  keyboardType="number-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-            {errors.calories && <Text style={styles.fieldError}>{errors.calories.message}</Text>}
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Notas (opcional)</Text>
-            <Controller
-              control={control}
-              name="notes"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[styles.input, styles.notesInput]}
-                  placeholder="Cómo te sentiste, qué trabajaste..."
-                  placeholderTextColor={colors.textTertiary}
-                  multiline
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                />
-              )}
-            />
-          </View>
+          <DateField control={control} name="date" label="Fecha" />
+          <PoolLengthField control={control} name="poolLength" label="Pileta" />
+          <TextField
+            control={control}
+            name="totalMeters"
+            label="Metros totales"
+            placeholder="3000"
+            keyboardType="number-pad"
+            suffix="m"
+          />
+          <DurationField control={control} name="durationSeconds" label="Tiempo total" />
+          <IntensityPicker control={control} name="intensity" label="Intensidad" />
+          <TextField
+            control={control}
+            name="calories"
+            label="Calorías (opcional)"
+            placeholder="450"
+            keyboardType="number-pad"
+            suffix="kcal"
+          />
+          <TextField
+            control={control}
+            name="notes"
+            label="Notas (opcional)"
+            placeholder="Cómo te sentiste, qué trabajaste..."
+            multiline
+            maxLength={NOTES_MAX_LENGTH}
+            showCounter
+          />
 
           <View style={styles.field}>
             <Text style={styles.label}>Series (opcional)</Text>
@@ -411,59 +198,16 @@ const styles = StyleSheet.create({
   field: {
     marginBottom: spacing.md,
   },
-  flexField: {
-    flex: 1,
-    marginBottom: 0,
-  },
-  row: {
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-  },
   label: {
     ...typography.bodyStrong,
     color: colors.textPrimary,
     marginBottom: spacing.xs,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    ...typography.body,
-    color: colors.textPrimary,
-  },
-  notesInput: {
-    minHeight: 90,
-    textAlignVertical: 'top',
-  },
-  fieldError: {
-    ...typography.caption,
-    color: colors.error,
-    marginTop: spacing.xs,
   },
   serverError: {
     ...typography.caption,
     color: colors.error,
     marginBottom: spacing.md,
     textAlign: 'center',
-  },
-  quickDatesRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  quickDateChip: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-  },
-  quickDateLabel: {
-    ...typography.caption,
-    color: colors.primary,
-    fontFamily: fontFamily.bold,
   },
   submitButton: {
     backgroundColor: colors.primary,

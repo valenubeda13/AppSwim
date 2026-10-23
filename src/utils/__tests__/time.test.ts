@@ -4,7 +4,9 @@ import {
   formatMinSec,
   formatRest,
   formatSwimTime,
+  joinDuration,
   parseDuration,
+  splitDuration,
 } from '../time';
 
 describe('formatDuration', () => {
@@ -79,5 +81,20 @@ describe('parseDuration', () => {
     expect(parseDuration('1:2:3:4')).toBeNull();
     expect(parseDuration('ab:cd')).toBeNull();
     expect(parseDuration('-1:00')).toBeNull();
+  });
+});
+
+describe('splitDuration / joinDuration', () => {
+  it('separa en horas, minutos y segundos', () => {
+    expect(splitDuration(3725)).toEqual({ hours: 1, minutes: 2, seconds: 5 });
+    expect(splitDuration(0)).toEqual({ hours: 0, minutes: 0, seconds: 0 });
+  });
+
+  it('ida y vuelta conserva los segundos', () => {
+    expect(joinDuration(splitDuration(5432))).toBe(5432);
+  });
+
+  it('acepta minutos de más', () => {
+    expect(joinDuration({ hours: 0, minutes: 90, seconds: 0 })).toBe(5400);
   });
 });

@@ -73,3 +73,24 @@ export function parseDuration(text: string): number | null {
 
   return numbers.reduce((total, n) => total * 60 + n, 0);
 }
+
+export interface DurationParts {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+/** Segundos -> horas, minutos y segundos: 3725 -> { 1, 2, 5 }. */
+export function splitDuration(totalSeconds: number): DurationParts {
+  const total = Math.max(0, Math.round(totalSeconds));
+  return {
+    hours: Math.floor(total / 3600),
+    minutes: Math.floor(total / 60) % 60,
+    seconds: total % 60,
+  };
+}
+
+/** Inversa de `splitDuration`. Acepta minutos o segundos > 59 (90 min = 1 h 30). */
+export function joinDuration({ hours, minutes, seconds }: DurationParts): number {
+  return hours * 3600 + minutes * 60 + seconds;
+}

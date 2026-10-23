@@ -2,6 +2,7 @@ import {
   formatDateLabel,
   formatLongDate,
   formatMonthTitle,
+  formatShortDate,
   isISODate,
   parseISODate,
   startOfWeekISO,
@@ -67,5 +68,12 @@ describe('startOfWeekISO', () => {
     expect(startOfWeekISO(new Date(2026, 8, 29))).toBe('2026-09-28'); // martes
     expect(startOfWeekISO(new Date(2026, 9, 4))).toBe('2026-09-28'); // domingo
     expect(startOfWeekISO(new Date(2026, 8, 28))).toBe('2026-09-28'); // lunes
+  });
+});
+
+describe('formatShortDate', () => {
+  it('día de la semana con mayúscula, día y mes corto', () => {
+    expect(formatShortDate('2026-09-29')).toBe('Martes 29 sep');
+    expect(formatShortDate('2026-01-01')).toBe('Jueves 1 ene');
   });
 });

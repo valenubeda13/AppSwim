@@ -44,6 +44,12 @@ export function formatDateLabel(isoDate: string, today: Date = new Date()): stri
   return format(date, pattern, { locale: es });
 }
 
+/** Fecha del campo de formulario: "2026-09-29" -> "Martes 29 sep" */
+export function formatShortDate(isoDate: string): string {
+  const label = format(parseISODate(isoDate), 'EEEE d MMM', { locale: es });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 /** Título de agrupación mensual: "2026-08-15" -> "Agosto 2026" */
 export function formatMonthTitle(isoDate: string): string {
   const label = format(parseISODate(isoDate), 'MMMM yyyy', { locale: es });
